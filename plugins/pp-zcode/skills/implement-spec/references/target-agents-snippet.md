@@ -1,12 +1,14 @@
 # Recommended AGENTS.md section for target projects
 
-Long-lived project rules only. The current requirement lives in the spec and tickets on the tracker, never in here. Offer this to the user in Phase 0 when the target repo has none of it; let them edit before it lands.
+Long-lived project rules only. The current requirement lives in the spec and tickets on the tracker, never in here. Offer this to the user before execution starts when the target repo has none of it; let them edit before it lands.
 
 ```markdown
 ## Pipeline
 
-Work runs through the pp pipeline: grilling → spec → tickets → execution → acceptance.
-Specs and tickets live on the tracker configured in docs/agents/issue-tracker.md.
+Grilling settles requirements; `pp-zcode:to-spec` publishes a spec to the tracker;
+large work is split into tickets with `pp-zcode:to-tickets`. Execution is
+`pp-zcode:implement-spec` (spec or ticket backed) or `pp-zcode:poteto-mode` (a direct
+task). Specs and tickets live on the tracker configured in docs/agents/issue-tracker.md.
 
 ## Commands
 

@@ -8,12 +8,11 @@ licensed MIT. Upstream version at the time of porting: 0.15.28.
 
 **Adapted (rewritten for zcode):**
 
-- `skills/pipeline-execute/SKILL.md` (directory renamed from `poteto-mode` when the
-  plugin's own skills took `pipeline-*` names) — upstream `skills/poteto-mode/SKILL.md` with
+- `skills/poteto-mode/SKILL.md` — upstream `skills/poteto-mode/SKILL.md` with
   the Harness adapter and Substitutions tables added (modeled on upstream's own
   `docs/harness/claude-code.md` porting approach), the playbook index pruned to
   the bundled set, model-selection sections replaced by host agent mapping, and
-  a Pipeline integration section added for the pp pipeline.
+  a Brief integration section added for spec- and ticket-backed runs.
 
 **Vendored verbatim:**
 
@@ -24,18 +23,37 @@ licensed MIT. Upstream version at the time of porting: 0.15.28.
 - `skills/no-comments/SKILL.md`; its `references/comment-sicko.md` is upstream
   `agents/comment-sicko.md`, relocated because zcode plugins ship no agents
   directory.
-- `skills/pipeline-execute/playbooks/{investigation,bug-fix,feature,refactoring,prototype,shipping,opening-a-pr}.md`
+- `skills/poteto-mode/playbooks/{investigation,bug-fix,feature,refactoring,prototype,shipping,opening-a-pr}.md`
 
 Cursor-specific names inside vendored files are resolved by the Harness adapter
-in `skills/pipeline-execute/SKILL.md`, not by editing the upstream text. The one
-upstream edit made anyway is mechanical: the vendored `how`, `why`, `arena`,
-`swarm`, and `no-comments` skills reference the bundled execution skill by its
-new name (`poteto-mode` → `pipeline-execute`).
+in `skills/poteto-mode/SKILL.md`, not by editing the upstream text. The edits
+made anyway are mechanical: the vendored `how`, `why`, `arena`, `swarm`, and
+`no-comments` skills name the bundled execution skill, and every skill reference
+uses the qualified `pp-zcode:<name>` form so a user-level skill of the same name
+cannot shadow the bundled copy.
 
-**Original to this plugin:** `skills/pipeline/`, `skills/pipeline-accept/`,
+**Original to this plugin:** `skills/implement-spec/`, `skills/pipeline-accept/`,
 `skills/pipeline-status/`.
 
 ## Matt Pocock's skills
 
-Referenced, not vendored: https://github.com/mattpocock/skills. The requirements
-half of the pipeline expects those skills installed at user level.
+Bundled from https://github.com/mattpocock/skills (MIT), taken from the user-level
+install present at the time of porting.
+
+**Vendored verbatim:**
+
+- `skills/grilling/`, `skills/grill-me/`, `skills/grill-with-docs/`
+- `skills/domain-modeling/`
+- `skills/to-spec/`, `skills/to-tickets/`
+- `skills/setup-matt-pocock-skills/`
+- `skills/triage/`
+- `skills/tdd/`, `skills/codebase-design/`
+
+Each skill keeps its upstream `SKILL.md`, reference files, and `agents/openai.yaml`
+metadata.
+
+**Adapted:** only the skill references were qualified. Calls to another bundled
+skill now use `pp-zcode:<name>` (for example `pp-zcode:grilling`), so a user-level
+skill of the same name cannot shadow the bundled copy. The same qualification was
+applied to references in this plugin's own skills and in generated project docs.
+Upstream prose and process are otherwise unchanged.

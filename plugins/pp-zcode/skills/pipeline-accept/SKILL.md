@@ -1,6 +1,6 @@
 ---
 name: pipeline-accept
-description: "Final acceptance gate of the pipeline: walk every acceptance criterion in the spec and each ticket, match it against real evidence (re-run verification commands, read build and test output, inspect the diff), and emit a per-criterion pass / fail / unverified report with routing. Use when the pipeline reaches acceptance, or for 'accept this against the spec' / '验收'."
+description: "Final acceptance gate: walk every acceptance criterion in the spec and each ticket, match it against real evidence (re-run verification commands, read build and test output, inspect the diff), and emit a per-criterion pass / fail / unverified report with routing. Use after execution finishes, or for 'accept this against the spec' / '验收'."
 disable-model-invocation: true
 ---
 
@@ -12,7 +12,7 @@ Acceptance compares the delivered work against the spec's acceptance criteria an
 
 ### 1. Build the criteria matrix
 
-Load the spec and every ticket from the tracker. Lay out one row per acceptance criterion: its source (spec section or ticket number), the criterion text, and an empty evidence cell. A ticket left `unverified` or `blocked` enters the matrix as a row with its reason, not as a silent omission.
+Load the spec and every ticket from the tracker. Lay out one row per acceptance criterion: its source (spec section or ticket number), the criterion text, and an empty evidence cell. A ticket left `unverified` or `blocked` enters the matrix as a row with its reason, not as a silent omission. A spec without tickets — a spec-only run — fills the matrix from the spec's criteria alone. A bare task with no spec never enters this skill; the execution hand-back report is its record.
 
 ### 2. Match every criterion to evidence
 
@@ -42,8 +42,8 @@ Routing: <one sentence per fail or unverified row>
 
 ### 4. Route by the failure's home
 
-- A `fail` whose criterion is right → reopen the named ticket: back to pipeline-execute execution with the failing evidence attached. Execution bugs do not touch the spec.
-- A `fail` or `unverified` that reveals the criterion itself is wrong, missing, or untestable → back to `to-spec` with the named question; re-ticket only the delta afterward.
-- All rows `pass` → the pipeline is complete. Update ticket states to their final values and say so plainly.
+- A `fail` whose criterion is right → reopen the named ticket: back to `pp-zcode:poteto-mode` with the failing evidence attached. Execution bugs do not touch the spec.
+- A `fail` or `unverified` that reveals the criterion itself is wrong, missing, or untestable → back to `pp-zcode:to-spec` with the named question; re-ticket only the delta afterward.
+- All rows `pass` → the run is complete. Update ticket states to their final values and say so plainly.
 
 Push back when it is warranted. If the work satisfies the spec but the spec now looks wrong, say it in the report's routing section. Acceptance reports the truth of spec versus evidence; it does not bless effort.

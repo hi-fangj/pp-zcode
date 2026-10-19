@@ -1,14 +1,15 @@
 {
   "name": "pp-zcode",
-  "version": "0.3.0",
-  "description": "Fused pipeline plugin: Matt Pocock's skills own requirements (grilling / to-spec / to-tickets), this plugin's pipeline-execute skill (a zcode port of pstack poteto-mode) owns execution and proof, and the pipeline router gates every handoff from idea to verified delivery.",
+  "version": "0.5.0",
+  "description": "Pocock × PStack in one plugin: Matt Pocock's requirements skills (grilling / to-spec / to-tickets and their support skills) ship bundled, implement-spec bridges a spec or ticket set to the poteto-mode execution engine (a zcode port of pstack), and pipeline-accept gates delivery on evidence. Invoke every skill by its qualified pp-zcode:<name> so a user-level install of the same skill cannot shadow it.",
   "author": {
     "name": "pp-zcode"
   },
-  "homepage": "https://github.com/mattpocock/skills",
+  "homepage": "https://github.com/hi-fangj/pp-zcode",
   "license": "MIT",
   "keywords": [
     "pipeline",
+    "pocock",
     "poteto-mode",
     "pstack",
     "spec",

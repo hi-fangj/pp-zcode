@@ -10,7 +10,7 @@ Status answers one question: where does a feature sit in the pipeline, and who o
 ## Contract
 
 - **Zero writes.** Never add or remove labels, never comment on an issue, never close or edit one. Every tracker call in this skill is a read.
-- **No quality judgment.** Whether the work is good belongs to `grilling` and `pipeline-accept`. Status reports state and evidence, not opinions.
+- **No quality judgment.** Whether the work is good belongs to `pp-zcode:grilling` and `pp-zcode:pipeline-accept`. Status reports state and evidence, not opinions.
 - Reply in the language of the conversation.
 
 ## Prerequisite
@@ -22,7 +22,7 @@ Read the target repo's tracker config at `docs/agents/issue-tracker.md`. If the 
 - A **spec** is an issue whose body contains the spec template's opening section `## Problem Statement`.
 - A feature's **tickets** are that spec issue's native sub-issues.
 - Other issues labeled `ready-for-agent` are plain bugs or one-off tasks. They are not features and never appear in list mode.
-- Work that has not reached the tracker — the requirements phase, `grilling` — is invisible to this skill by design. Say so rather than inferring it.
+- Work that has not reached the tracker — the requirements phase, `pp-zcode:grilling` — is invisible to this skill by design. Say so rather than inferring it.
 
 ## Input
 
@@ -37,14 +37,14 @@ The mapping is mechanical, derived only from tracker state:
 | Tracker state | Phase | Next owner |
 | --- | --- | --- |
 | No spec matches the reference | no spec found | none — name what was searched; never guess |
-| Spec open, no tickets yet | ticketing | `to-tickets` |
-| Spec open, one or more open tickets | execution | `pipeline-execute` |
-| All tickets closed, or the only open tickets are explicitly `unverified` with a reason, spec still open | acceptance | `pipeline-accept` |
+| Spec open, no tickets yet | ticketing — or a deliberate spec-only run | `pp-zcode:to-tickets` to split, `pp-zcode:implement-spec` to build from the spec as-is |
+| Spec open, one or more open tickets | execution | `pp-zcode:implement-spec` |
+| All tickets closed, or the only open tickets are explicitly `unverified` with a reason, spec still open | acceptance | `pp-zcode:pipeline-accept` |
 | Spec issue closed | delivered | none |
 
-`grilling`-phase work leaves no tracker footprint, so it cannot appear in the table above; that is expected, not missing data.
+`pp-zcode:grilling`-phase work leaves no tracker footprint, so it cannot appear in the table above; that is expected, not missing data. A spec open with no tickets is ambiguous by design — the tracker does not record whether the user chose to split tickets or to build from the spec directly — so report both owners instead of picking one.
 
-This table mirrors the phase table in the `pipeline` skill: `grilling` → `to-spec` → `to-tickets` → `pipeline-execute` → `pipeline-accept`. `pipeline` is the source of truth; if they diverge, `pipeline` wins.
+The flow behind the table: `pp-zcode:grilling` → `pp-zcode:to-spec` → (`pp-zcode:to-tickets`) → `pp-zcode:implement-spec` → `pp-zcode:pipeline-accept`, with `pp-zcode:poteto-mode` as the execution engine behind `pp-zcode:implement-spec`. The tracker is the source of truth for where a feature stands.
 
 ## Reading ticket state
 

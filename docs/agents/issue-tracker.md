@@ -29,12 +29,12 @@ The pipeline drives a ticket issue through workflow labels. Exactly one workflow
 
 Feature lifecycle on the tracker:
 
-- A spec issue with all ticket sub-issues closed, or whose only remaining open sub-issues are explicitly `unverified` with a reason, sits in acceptance; its next owner is `pipeline-accept`.
+- A spec issue with all ticket sub-issues closed, or whose only remaining open sub-issues are explicitly `unverified` with a reason, sits in acceptance; its next owner is `pp-zcode:pipeline-accept`.
 - Closing the spec issue after acceptance marks the feature delivered. Delivered features no longer appear in status listings.
 
 ## Pull requests as a triage surface
 
-**PRs as a request surface: no.** _(Set to `yes` if this repo treats external PRs as feature requests; `/triage` reads this flag.)_
+**PRs as a request surface: no.** _(Set to `yes` if this repo treats external PRs as feature requests; `/pp-zcode:triage` reads this flag.)_
 
 When set to `yes`, PRs run through the same labels and states as issues, using the `gh pr` equivalents:
 

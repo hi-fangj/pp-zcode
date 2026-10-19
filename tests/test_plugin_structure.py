@@ -17,7 +17,53 @@ REPO = Path(__file__).resolve().parent.parent
 PLUGIN = REPO / "plugins" / "pp-zcode"
 SKILLS = PLUGIN / "skills"
 
-FUSION_SKILLS = ["pipeline", "pipeline-accept", "pipeline-execute"]
+FUSION_SKILLS = ["implement-spec", "poteto-mode", "pipeline-accept"]
+POCOCK_SKILLS = [
+    "grilling",
+    "grill-me",
+    "grill-with-docs",
+    "domain-modeling",
+    "to-spec",
+    "to-tickets",
+    "setup-matt-pocock-skills",
+    "tdd",
+    "codebase-design",
+    "triage",
+]
+POCOCK_USER_INVOKED = [
+    "grill-me",
+    "grill-with-docs",
+    "to-spec",
+    "to-tickets",
+    "setup-matt-pocock-skills",
+    "triage",
+]
+POCOCK_MODEL_INVOCABLE = ["grilling", "domain-modeling", "tdd", "codebase-design"]
+POCOCK_REFERENCE_FILES = {
+    "domain-modeling": ["ADR-FORMAT.md", "GLOSSARY-FORMAT.md"],
+    "setup-matt-pocock-skills": [
+        "domain.md",
+        "issue-tracker-github.md",
+        "issue-tracker-gitlab.md",
+        "issue-tracker-local.md",
+        "triage-labels.md",
+    ],
+    "tdd": ["mocking.md", "tests.md"],
+    "codebase-design": ["DEEPENING.md", "DESIGN-IT-TWICE.md"],
+    "triage": ["AGENT-BRIEF.md", "OUT-OF-SCOPE.md"],
+}
+BUNDLED_SKILL_NAMES = sorted(set(FUSION_SKILLS + POCOCK_SKILLS + [
+    "pipeline-status",
+    "how",
+    "why",
+    "architect",
+    "arena",
+    "swarm",
+    "unslop",
+    "no-comments",
+    "technical-writing",
+    "benchmark-checklist",
+]))
 PLAYBOOKS = [
     "investigation",
     "bug-fix",
@@ -117,21 +163,77 @@ class TestSkills(unittest.TestCase):
                              f"{name} must stay user-invoked")
 
 
+class TestBundledPocockSkills(unittest.TestCase):
+    """Matt Pocock's requirements skills ship inside the plugin, so a user-level
+    install of the same name is not required and cannot shadow the qualified name."""
+
+    def test_every_bundled_skill_ships(self):
+        for name in POCOCK_SKILLS:
+            self.assertTrue((SKILLS / name / "SKILL.md").is_file(),
+                            f"bundled Pocock skill {name} went missing")
+
+    def test_reference_files_ship_with_their_skill(self):
+        for name, refs in POCOCK_REFERENCE_FILES.items():
+            for ref in refs:
+                self.assertTrue((SKILLS / name / ref).is_file(),
+                                f"{name} is missing reference file {ref}")
+
+    def test_invocation_policy_matches_upstream(self):
+        for name in POCOCK_USER_INVOKED:
+            fm = frontmatter(SKILLS / name / "SKILL.md")
+            self.assertEqual(fm.get("disable-model-invocation"), "true",
+                             f"{name} must stay user-invoked")
+        for name in POCOCK_MODEL_INVOCABLE:
+            fm = frontmatter(SKILLS / name / "SKILL.md")
+            self.assertNotIn("disable-model-invocation", fm,
+                             f"{name} must stay model-invocable")
+
+    def test_cross_references_use_qualified_names(self):
+        """A bare skill name resolves through an alias that a user-level skill of
+        the same name shadows, so every invocation and routing line must carry the
+        plugin prefix."""
+        bare_slash = re.compile(
+            r"(?<![\w:./-])/(?:" + "|".join(re.escape(n) for n in BUNDLED_SKILL_NAMES) + r")\b")
+        bare_call = re.compile(
+            r'Skill tool (?:with|twice, for) "(?:'
+            + "|".join(re.escape(n) for n in BUNDLED_SKILL_NAMES) + r')"')
+        for path in sorted(SKILLS.rglob("*.md")):
+            text = path.read_text(encoding="utf-8")
+            self.assertIsNone(bare_slash.search(text),
+                              f"{path.relative_to(SKILLS)} invokes a bundled skill by bare name")
+            self.assertIsNone(bare_call.search(text),
+                              f"{path.relative_to(SKILLS)} calls a bundled skill by bare name")
+
+    def test_bundled_skills_have_no_unresolved_placeholders(self):
+        for name in POCOCK_SKILLS:
+            text = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
+            self.assertNotIn("{{", text, f"{name} contains an unresolved placeholder")
+
+    def test_qualified_references_resolve(self):
+        """A typo in a pp-zcode:<name> reference silently breaks routing at run time."""
+        pattern = re.compile(r"pp-zcode:([a-z0-9][a-z0-9-]*[a-z0-9])(?![a-z0-9<-])")
+        for path in sorted(SKILLS.rglob("*.md")):
+            for name in sorted(set(pattern.findall(path.read_text(encoding="utf-8")))):
+                self.assertTrue((SKILLS / name / "SKILL.md").is_file(),
+                                f"{path.relative_to(SKILLS)} references pp-zcode:{name}, "
+                                "which is not bundled")
+
+
 class TestReferences(unittest.TestCase):
     def test_referenced_playbooks_exist(self):
-        execute = (SKILLS / "pipeline-execute" / "SKILL.md").read_text()
-        for ref in set(re.findall(r"playbooks/([a-z-]+)\.md", execute)):
-            self.assertTrue((SKILLS / "pipeline-execute" / "playbooks" / f"{ref}.md").is_file(),
-                            f"pipeline-execute references missing playbook {ref}")
+        engine = (SKILLS / "poteto-mode" / "SKILL.md").read_text()
+        for ref in set(re.findall(r"playbooks/([a-z-]+)\.md", engine)):
+            self.assertTrue((SKILLS / "poteto-mode" / "playbooks" / f"{ref}.md").is_file(),
+                            f"poteto-mode references missing playbook {ref}")
 
     def test_expected_playbooks_shipped(self):
         for pb in PLAYBOOKS:
-            self.assertTrue((SKILLS / "pipeline-execute" / "playbooks" / f"{pb}.md").is_file(),
+            self.assertTrue((SKILLS / "poteto-mode" / "playbooks" / f"{pb}.md").is_file(),
                             f"playbook {pb} went missing")
 
-    def test_pipeline_reference_files_exist(self):
+    def test_implement_spec_reference_files_exist(self):
         for ref in ("handoff-brief.md", "target-agents-snippet.md"):
-            self.assertTrue((SKILLS / "pipeline" / "references" / ref).is_file())
+            self.assertTrue((SKILLS / "implement-spec" / "references" / ref).is_file())
 
     def test_comment_sicko_brief_vendored(self):
         brief = SKILLS / "no-comments" / "references" / "comment-sicko.md"
@@ -147,11 +249,14 @@ class TestFusionContent(unittest.TestCase):
             text = (SKILLS / name / "SKILL.md").read_text()
             self.assertNotIn("{{", text, f"{name} contains an unresolved placeholder")
 
-    def test_pipeline_gate_names_are_consistent(self):
-        router = (SKILLS / "pipeline" / "SKILL.md").read_text()
+    def test_bridge_and_engine_wiring_is_consistent(self):
+        bridge = (SKILLS / "implement-spec" / "SKILL.md").read_text()
+        engine = (SKILLS / "poteto-mode" / "SKILL.md").read_text()
         accept = (SKILLS / "pipeline-accept" / "SKILL.md").read_text()
-        for stage in ("grilling", "to-spec", "to-tickets", "pipeline-execute"):
-            self.assertIn(stage, router, f"pipeline router lost its {stage} stage")
+        self.assertIn("poteto-mode", bridge, "implement-spec must name its engine")
+        self.assertIn("pipeline-accept", bridge, "implement-spec must route spec-backed runs to acceptance")
+        self.assertIn("implement-spec", engine, "poteto-mode must name its front-door bridge")
+        self.assertIn("Ticketless", engine, "poteto-mode lost its ticketless brief branch")
         for verdict in ("pass", "fail", "unverified"):
             self.assertIn(verdict, accept, f"pipeline-accept lost its {verdict} verdict")
 
@@ -159,7 +264,8 @@ class TestFusionContent(unittest.TestCase):
 class TestPipelineStatus(unittest.TestCase):
     def test_mirrors_pipeline_stage_names(self):
         status = (SKILLS / "pipeline-status" / "SKILL.md").read_text()
-        for stage in ("grilling", "to-spec", "to-tickets", "pipeline-execute", "pipeline-accept"):
+        for stage in ("grilling", "to-spec", "to-tickets", "implement-spec",
+                      "poteto-mode", "pipeline-accept"):
             self.assertIn(stage, status, f"pipeline-status lost its {stage} stage")
 
     def test_stays_model_invocable(self):

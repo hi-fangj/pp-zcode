@@ -1,12 +1,14 @@
 ---
-name: pipeline-execute
-description: "pp-zcode's execution engine: the zcode port of pstack poteto-mode, exposed here as pipeline-execute. Concise, detailed responses, deliberate subagents, unslopped prose, simple code, and verified work. Owns the 'how it's built and proven' half of the pipeline. Use for /pipeline-execute, execution of approved tickets, or any change task routed here by the pipeline skill."
+name: poteto-mode
+description: "pp-zcode's execution engine: the zcode port of pstack poteto-mode. Concise, detailed responses, deliberate subagents, unslopped prose, simple code, and verified work. Owns how the work is built and proven, from a handoff brief (spec, tickets, or a named request) or a bare task. Use for /pp-zcode:poteto-mode, execution handed over by pp-zcode:implement-spec, or any change task you want done with evidence."
 disable-model-invocation: true
 ---
 
-# Pipeline execute (poteto-mode port)
+# Poteto-mode (execution engine)
 
 This is the zcode port of [pstack](https://github.com/cursor/plugins/tree/main/pstack) `poteto-mode` by Lauren Tan (MIT). Skills bundled in this plugin live at `../<name>/SKILL.md` relative to this file. Resolve this file's absolute path first (the skill loader names its base directory); every subagent brief you write carries that path.
+
+Address every bundled skill by its qualified name, `pp-zcode:<name>`. Bare names are aliases only, and a user-level skill of the same name shadows the bare alias. Never use a bare name in a brief, a routing line, or a cross-reference.
 
 Upstream text uses Cursor names. Apply the Harness adapter below once per session before following any step, playbook, or bundled skill. Where a Cursor field has no zcode row, drop it and say so. Never pass a field or value the host tool schema rejects.
 
@@ -19,7 +21,7 @@ Upstream text uses Cursor names. Apply the Harness adapter below once per sessio
 | `Task` tool | `Agent` tool |
 | `AskQuestion` | `AskUserQuestion`. If absent, ask in plain text. |
 | Open a todolist | `TodoWrite`. |
-| Run another bundled skill ("the **how** skill", `/architect`, …) | `Skill` tool with `pp-zcode:<name>`. If the tool refuses it, `Read` `<base-dir>/../<name>/SKILL.md` and follow it. |
+| Run another bundled skill (the how skill, architect, …) | `Skill` tool with `pp-zcode:<name>`, the qualified name only. If the tool refuses it, `Read` `<base-dir>/../<name>/SKILL.md` and follow it. |
 | `Grep`, `Glob` | `Grep`/`Glob` when present, else `Bash` with `rg`. |
 
 ### Subagents
@@ -41,7 +43,7 @@ Upstream text uses Cursor names. Apply the Harness adapter below once per sessio
 Paste this block into every code-writing delegate spawn, above the task-specific scope. It replaces upstream's `poteto-agent` reading this file:
 
 ```text
-You are a delegate inside a pipeline-execute run. The parent chat owns the playbook,
+You are a delegate inside a poteto-mode run. The parent chat owns the playbook,
 the todo list, and every spawn. You own only the scope below.
 
 - Comments: keep only a non-obvious why the code cannot show. No phase-narrating
@@ -59,12 +61,12 @@ the todo list, and every spawn. You own only the scope below.
 
 | Upstream reference | Do this instead |
 | --- | --- |
-| The **tdd** skill | Use the session's `tdd` skill when present (Pocock's), else apply red-green-refactor directly: failing test at the spec's seam, then the change, then the full check. |
+| Upstream's `tdd` skill | Use the bundled `pp-zcode:tdd`: failing test at the spec's seam, then the change, then the full check. |
 | `interrogate` (contested design) | Spawn a fresh `glm-reviewer` on the same design question and compare verdicts; agreement is high-signal. Still contested → put the fork to the user. |
-| `figure-it-out` (bespoke playbook for large work) | Hand back to the **pipeline** skill: large or cross-cutting work gets split at the ticket stage, not improvised here. |
-| `show-me-your-work` (decision trail) | The pipeline's decision trail lives in the ticket files and the pipeline-accept report. |
+| `figure-it-out` (bespoke playbook for large work) | Hand the work back: large or cross-cutting work gets split into tickets with `pp-zcode:to-tickets` and handed over through `pp-zcode:implement-spec`, not improvised here. |
+| `show-me-your-work` (decision trail) | The decision trail lives in the ticket files and the `pp-zcode:pipeline-accept` report. |
 | `babysit` playbook and `scripts/watch-pr` | Use `gh pr checks --watch <pr>` and `gh pr view` in a loop. |
-| `deslop` from cursor-team-kit | The bundled **unslop** and **no-comments** skills cover it. |
+| `deslop` from cursor-team-kit | The bundled `pp-zcode:unslop` and `pp-zcode:no-comments` skills cover it. |
 | `control-ui` / `control-cli` | Web UI: the `browser-use` plugin skills (`web-gui-tester`, `control-browser`) when installed. CLI: run it directly. Otherwise skip with a line. |
 | Cursor `/loop` | Re-invoke the step or poll the background task with `TaskOutput`. |
 | Bugbot, Cursor cloud agents, Automations, built-in PR tool | Skip with one line `Skipped in zcode: <step>. <reason>.` and continue. Use `gh` for PR operations. |
@@ -75,24 +77,24 @@ The Principles section below grounds every trigger. In your reply, name each pri
 
 Remaining triggers:
 
-- Nontrivial change, architecture decision, or "are we sure?" → the **how** skill.
+- Nontrivial change, architecture decision, or "are we sure?" → `pp-zcode:how`.
 - About to `AskUserQuestion` on a "which approach", "how should I", or "what should this do" fork → classify it before you ask. If the answer is a fact you could observe by running something (behavior, timing, layout, output, perf), it is not the human's to answer. Sketch it via the Prototype playbook (`playbooks/prototype.md`) and let the result decide. If the task is a read-only Investigation whose deliverable is a cited answer, stay in it and answer from the evidence rather than building a sketch. Reserve the question for a genuine product or preference call no experiment can settle. Under a full-autonomy grant, decide a call the grant covers, act on it, and report it. For a call only the operator can make, apply a default, report it with a full explanation, and say in plain words what the operator could tell you to do instead.
-- Any code → name the data shape first, and choose its organizing structure per **principle-model-the-domain**.
-- Code crossing a function boundary → the **architect** skill, parallel design exploration before implementing.
-- Parallel fan-out → the **swarm** skill for coverage matrices, races, gauntlets, and exploration partitions. Use **arena** for design or code bakeoffs with base selection and grafting.
+- Any code → name the data shape first, and choose its organizing structure per `pp-zcode:principle-model-the-domain`.
+- Code crossing a function boundary → `pp-zcode:architect`, parallel design exploration before implementing.
+- Parallel fan-out → `pp-zcode:swarm` for coverage matrices, races, gauntlets, and exploration partitions. Use `pp-zcode:arena` for design or code bakeoffs with base selection and grafting.
 - Nontrivial multi-step → write the throughput checkpoint (Feature step 3).
-- Any prose surface, your reply to the user included → the **unslop** skill. Write the reply per **Writing the reply**.
-- Docs, RFCs, readmes, PR descriptions, or commit messages → the **technical-writing** skill.
-- Before review → the **no-comments** skill.
+- Any prose surface, your reply to the user included → `pp-zcode:unslop`. Write the reply per **Writing the reply**.
+- Docs, RFCs, readmes, PR descriptions, or commit messages → `pp-zcode:technical-writing`.
+- Before review → `pp-zcode:no-comments`.
 - Shipping UI / IDE / CLI → the matching control skill per the Substitutions table. For bug fixes, reproduce first on the same surface yourself.
-- Running a benchmark, measuring perf yourself, or reporting a speedup or regression you measured → the **benchmark-checklist** skill before you report or act on the number.
+- Running a benchmark, measuring perf yourself, or reporting a speedup or regression you measured → `pp-zcode:benchmark-checklist` before you report or act on the number.
 - Asked to land or ship a green stack → the **Shipping** playbook (`playbooks/shipping.md`). Green is not safe. Nothing gets armed before an independent per-PR verdict, and only the contiguous verified run from the root lands.
 - Broken skill mid-task → fix it in its own PR. Don't block. Don't silently work around it.
-- Long, autonomous, or multi-phase work → the decision trail lives in the ticket files and the pipeline-accept report (see Substitutions).
+- Long, autonomous, or multi-phase work → the decision trail lives in the ticket files and the `pp-zcode:pipeline-accept` report (see Substitutions).
 
 ## Principles
 
-Read the leaf skill in full for any principle you apply. Each entry names when it applies. Each leaf is the **principle-<title>** skill.
+Read the leaf skill in full for any principle you apply. Each entry names when it applies. Each leaf is a bundled `pp-zcode:principle-<title>` skill.
 
 **Core**
 
@@ -120,7 +122,7 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 
 - **Prove It Works.** After a task, before declaring done. Verify against the real artifact, not a proxy or "it compiles".
 - **Fix Root Causes.** Debugging. Trace each symptom back to the first place the system went wrong and fix it there. A guard is a fix only when the state it handles is legitimate.
-- **Sequence Work into Verifiable Units** (**principle-sequence-verifiable-units**). Multi-step work and how you stack commits and PRs. Break work into small units that each end in a check, verify each before the next, and order delivery so the sequence proves itself.
+- **Sequence Work into Verifiable Units** (`pp-zcode:principle-sequence-verifiable-units`). Multi-step work and how you stack commits and PRs. Break work into small units that each end in a check, verify each before the next, and order delivery so the sequence proves itself.
 - **Test Behavior, Not Implementation.** Writing, changing, or keeping a test. Assert what the code's users can observe, so the test fails when that behavior breaks and keeps passing when only the internals change.
 - **Explain the Number.** Before you trust, report, or act on a number you measured. Find what limits it, and rule out that it measured something other than the work you think.
 
@@ -181,14 +183,14 @@ Open a todolist whose first items are the matched playbook's steps, copied in ve
 - **Shipping.** Independently verifying a green stack, then landing the contiguous verified run bottom-up through `gh`.
 - **Opening a PR.** Invoked at the end of every other playbook.
 
-No bundled playbook fits (perf hunt, eval, visual parity, forensics)? Route by shape: read-only question → **Investigation**; any change → **Feature** or **Bug fix**; decision to settle → **Prototype**. Large or cross-cutting work (a migration across many call sites, a multi-part program) does not improvise here: hand back to the **pipeline** skill so the work is split at the ticket stage.
+No bundled playbook fits (perf hunt, eval, visual parity, forensics)? Route by shape: read-only question → **Investigation**; any change → **Feature** or **Bug fix**; decision to settle → **Prototype**. Large or cross-cutting work (a migration across many call sites, a multi-part program) does not improvise here: hand it back — it gets split into tickets with `pp-zcode:to-tickets` and handed over through `pp-zcode:implement-spec`.
 
-## Pipeline integration
+## Brief integration
 
-When the **pipeline** skill hands you a brief, the pipeline contract holds on top of everything above:
+When a handoff brief is on the table — built by `pp-zcode:implement-spec` or assembled by the caller — its contract holds on top of everything above:
 
-1. **Work ticket by ticket.** The brief names the spec and the ticket set. Take the frontier (tickets whose blockers are all verified) in dependency order. Serial first: one ticket in flight until the loop is proven, parallel fan-out only when the brief grants it.
-2. **Update ticket status as you go**: `in-progress` when you start, `in-review` when the implementation stands, `verified` only with evidence. Record on the ticket the exact verification commands and their key output lines. What cannot be executed in this environment is recorded as `unverified: <what manual step or device is needed>`, never as done.
-3. **Independent review before verified.** A delegate's self-report never marks a ticket verified. Run `glm-reviewer` (or a fresh agent) over the diff, and run the verification through `glm-tester` or your own commands.
-4. **The spec is read-only.** Never edit the spec, a ticket's acceptance criteria, or the blocking edges during execution. Execution-level problems (wrong approach, broken build) you fix inside the ticket. Requirement-level doubt (the spec looks wrong, an acceptance criterion cannot be satisfied as written, a missing case) stops the run: hand back to **pipeline** with the named question, and pipeline routes it to the spec stage.
-5. **Finish with the hand-back.** All tickets verified or explicitly blocked, report per ticket: what shipped, the evidence, and anything unverified. The **pipeline** skill then runs acceptance.
+1. **Work what the brief hands you.** A ticketed brief names the spec and the ticket set: take the frontier (tickets whose blockers are all verified) in dependency order; serial first — one ticket in flight until the loop is proven, parallel fan-out only when the brief grants it. A ticketless brief names a spec or a request: the whole basis is one unit of work; pick the playbook by shape and drive it to done against the brief's acceptance criteria.
+2. **Record progress where the work lives.** Ticketed: update ticket status as you go — `in-progress` when you start, `in-review` when the implementation stands, `verified` only with evidence — and record on the ticket the exact verification commands and their key output lines. Ticketless: no tracker writes; the hand-back report is the record. What cannot be executed in this environment is recorded as `unverified: <what manual step or device is needed>`, never as done.
+3. **Independent review before done.** A delegate's self-report never marks work verified. Run `glm-reviewer` (or a fresh agent) over the diff, and run the verification through `glm-tester` or your own commands.
+4. **The spec and the brief are read-only.** Never edit the spec, a ticket's acceptance criteria, the blocking edges, or the brief's acceptance criteria during execution. Execution-level problems (wrong approach, broken build) you fix inside the ticket or the unit. Requirement-level doubt (the spec looks wrong, an acceptance criterion cannot be satisfied as written, a missing case) stops the run: hand back the named question, so it goes to the spec stage (`pp-zcode:to-spec`).
+5. **Finish with the hand-back.** Report per ticket or per acceptance criterion: what shipped, the evidence, and anything unverified. A spec-backed run then goes to `pp-zcode:pipeline-accept`; a ticketless run's report is the delivery record.

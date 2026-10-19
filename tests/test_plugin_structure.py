@@ -156,5 +156,17 @@ class TestFusionContent(unittest.TestCase):
             self.assertIn(verdict, accept, f"pp-accept lost its {verdict} verdict")
 
 
+class TestPPStatus(unittest.TestCase):
+    def test_mirrors_pp_stage_names(self):
+        status = (SKILLS / "pp-status" / "SKILL.md").read_text()
+        for stage in ("grilling", "to-spec", "to-tickets", "poteto-mode", "pp-accept"):
+            self.assertIn(stage, status, f"pp-status lost its {stage} stage")
+
+    def test_stays_model_invocable(self):
+        fm = frontmatter(SKILLS / "pp-status" / "SKILL.md")
+        self.assertNotIn("disable-model-invocation", fm,
+                         "pp-status must stay model-invocable")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

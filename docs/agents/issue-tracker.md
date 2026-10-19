@@ -29,7 +29,7 @@ The pp pipeline drives a ticket issue through workflow labels. Exactly one workf
 
 Feature lifecycle on the tracker:
 
-- A spec issue with all ticket sub-issues closed sits in acceptance; its next owner is `pp-accept`.
+- A spec issue with all ticket sub-issues closed, or whose only remaining open sub-issues are explicitly `unverified` with a reason, sits in acceptance; its next owner is `pp-accept`.
 - Closing the spec issue after acceptance marks the feature delivered. Delivered features no longer appear in status listings.
 
 ## Pull requests as a triage surface

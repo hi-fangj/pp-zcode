@@ -1,0 +1,15 @@
+{
+  "name": "dev-pp-zcode",
+  "plugins": [
+    {
+      "name": "pp-zcode",
+      "source": "./pp-zcode",
+      "version": "0.1.0",
+      "description": "Fused pipeline plugin: Matt Pocock's skills own requirements (grilling / to-spec / to-tickets), this plugin's zcode port of pstack poteto-mode owns execution and proof, and the pp router gates every handoff from idea to verified delivery.",
+      "displayName": "PP · Pocock × PStack",
+      "displayName_i18n": { "zh-CN": "PP 融合流水线" },
+      "description_i18n": { "zh-CN": "Pocock 技能负责需求与规格，pstack poteto-mode 移植版负责执行与验证，pp 编排单向流水线" },
+      "category": "developer-tools"
+    }
+  ]
+}

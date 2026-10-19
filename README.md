@@ -48,7 +48,7 @@ plugins/pp-zcode/
     ├── to-tickets/                   拆成带阻塞边的纵切工单
     ├── setup-matt-pocock-skills/     首次使用前配置 tracker、triage 标签、领域文档
     ├── triage/                       问题与外PR 的分诊状态机，产出 agent brief
-    ├── tdd/                          red-green-refactor 参考
+    ├── tdd/                          red-green-refactor 参考 + bug 修复回归循环
     ├── codebase-design/              深模块设计的共享词汇
     ├── implement-spec/               ★ 桥接：从 tracker 取 spec/工单，构建交接简报，交给引擎
     │   └── references/               交接简报模板、目标项目 AGENTS.md 片段
@@ -64,7 +64,7 @@ plugins/pp-zcode/
 
 移植方式沿用 pstack 官方的适配层做法：上游技能**原样保留**，所有 Cursor 专有名称（Task、模型 slug、cloud agent、Bugbot 等）集中在 `poteto-mode` 的 Harness adapter 一张表里映射到 zcode 的对应物（`Agent`、宿主的 glm-coder / glm-reviewer / glm-tester 等专项 agent、`gh`、browser-use 技能）。未随插件携带的上游技能（`interrogate`、`figure-it-out`、`show-me-your-work`、babysit 等）在 Substitutions 表里给了明确的替代行为，不靠猜。
 
-Pocock 技能按上游原文打包，只做了一处机械改动：技能之间的调用与指引改成 `pp-zcode:<name>` 限定名。
+Pocock 技能按上游原文打包，只做了一处机械改动：技能之间的调用与指引改成 `pp-zcode:<name>` 限定名。唯一的内容融合在 `tdd`：保留 Pocock 的测试方法论，并并入 pstack 的 bug 修复循环、跳过规则与证据报告。
 
 ## 依赖
 

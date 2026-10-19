@@ -60,7 +60,21 @@ POCOCK_REFERENCE_FILES = {
     "codebase-design": ["DEEPENING.md", "DESIGN-IT-TWICE.md"],
     "triage": ["AGENT-BRIEF.md", "OUT-OF-SCOPE.md"],
 }
-BUNDLED_SKILL_NAMES = sorted(set(FUSION_SKILLS + POCOCK_SKILLS + UNITY_SKILLS + [
+UPSTREAM_SKILLS = [
+    "blast-radius",
+    "correct",
+    "teach",
+    "show-me-your-work",
+    "typescript-best-practices",
+    "reflect",
+    "recall",
+    "create-verification-skill",
+    "maintain-verification-skill",
+    "create-formal-verification-skill",
+    "maintain-formal-verification-skill",
+]
+BUNDLED_AGENTS = ["comment-sicko"]
+BUNDLED_SKILL_NAMES = sorted(set(FUSION_SKILLS + POCOCK_SKILLS + UNITY_SKILLS + UPSTREAM_SKILLS + [
     "pipeline-status",
     "how",
     "why",
@@ -79,6 +93,8 @@ PLAYBOOKS = [
     "feature",
     "refactoring",
     "prototype",
+    "session-pickup",
+    "pause-safely",
     "shipping",
     "opening-a-pr",
 ]
@@ -251,9 +267,80 @@ class TestBundledPocockSkills(unittest.TestCase):
         pattern = re.compile(r"pp-zcode:([a-z0-9][a-z0-9-]*[a-z0-9])(?![a-z0-9<-])")
         for path in sorted(SKILLS.rglob("*.md")):
             for name in sorted(set(pattern.findall(path.read_text(encoding="utf-8")))):
+                if name in BUNDLED_AGENTS:
+                    continue
                 self.assertTrue((SKILLS / name / "SKILL.md").is_file(),
                                 f"{path.relative_to(SKILLS)} references pp-zcode:{name}, "
                                 "which is not bundled")
+
+
+class TestBundledAgents(unittest.TestCase):
+    """no-comments spawns a reviewer subagent. The plugin registers it under
+    agents/ so the spawn does not depend on a user-level install."""
+
+    def test_every_agent_ships_with_matching_frontmatter(self):
+        for name in BUNDLED_AGENTS:
+            path = PLUGIN / "agents" / f"{name}.md"
+            self.assertTrue(path.is_file(), f"agents/{name}.md went missing")
+            self.assertEqual(frontmatter(path).get("name"), name,
+                             f"agents/{name}.md frontmatter name mismatch")
+
+    def test_manifest_declares_the_agents_directory(self):
+        manifest = json.loads((PLUGIN / ".zcode-plugin" / "plugin.json").read_text())
+        self.assertEqual(manifest.get("agents"), "./agents")
+        self.assertTrue((PLUGIN / "agents").is_dir())
+
+
+class TestHarnessResidue(unittest.TestCase):
+    """Cursor mechanics have no zcode equivalent. A stale mention sends the agent
+    looking for a tool or command that does not exist on this host."""
+
+    FORBIDDEN = [
+        (re.compile(r"cursor-team-kit"), "Cursor team-kit command"),
+        (re.compile(r"Cursor cloud agent"), "Cursor cloud agent"),
+        (re.compile(r"Cursor'?s? `?/loop`?"), "Cursor /loop"),
+        (re.compile(r"`Task` (?:tool|spawn|spawns|calls|call)"), "Task tool"),
+        (re.compile(r"Spawn(?:ing)? (?:a |multiple |several )?`Task`"), "Task tool spawn"),
+        (re.compile(r"\bgeneralPurpose\b"), "wrong subagent type name"),
+        (re.compile(r"(?<![\w:])`comment-sicko`"), "unqualified agent name"),
+        (re.compile(r'"comment-sicko"'), "unqualified agent name"),
+        (re.compile(r"(?:from|in) the Cursor environment"), "Cursor MCP discovery"),
+        (re.compile(r"`mcps/` directory"), "Cursor MCP discovery"),
+        (re.compile(r"cursor location"), "editor cursor signal"),
+    ]
+    # The Harness adapter and Substitutions tables name upstream mechanics on
+    # purpose. Exemption is exact-line equality, so appended forbidden text
+    # still fails.
+    ALLOWED_ROWS = {
+        "| `Task` tool | `Agent` tool |",
+        "| `deslop` from cursor-team-kit | The bundled `pp-zcode:unslop` and `pp-zcode:no-comments` skills cover it. |",
+        "| Cursor `/loop` | Re-invoke the step each round, or read the background task's output file; a background agent notifies on completion. |",
+        "| Bugbot, Cursor cloud agents, Automations, built-in PR tool | Skip with one line `Skipped in zcode: <step>. <reason>.` and continue. Use `gh` for PR operations. |",
+    }
+
+    def _bundled_texts(self):
+        return list(SKILLS.rglob("*.md")) + list((PLUGIN / "agents").rglob("*.md"))
+
+    def test_no_cursor_mechanics_in_bundled_text(self):
+        for path in sorted(self._bundled_texts()):
+            for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                if line.strip() in self.ALLOWED_ROWS:
+                    continue
+                for pattern, label in self.FORBIDDEN:
+                    self.assertIsNone(
+                        pattern.search(line),
+                        f"{path.relative_to(PLUGIN)}:{lineno} still uses {label}")
+
+    def test_skill_frontmatter_uses_only_supported_keys(self):
+        """ZCode reads name, description, and disable-model-invocation. A key
+        copied from another host (`paths`, `icon`, `color`) is silently ignored,
+        which makes the trigger the author intended never fire."""
+        allowed = {"name", "description", "disable-model-invocation"}
+        for name, path in skill_dirs().items():
+            keys = set(frontmatter(path))
+            self.assertEqual(keys - allowed, set(),
+                             f"{name}/SKILL.md carries unsupported frontmatter "
+                             f"keys: {sorted(keys - allowed)}")
 
 
 class TestReferences(unittest.TestCase):
@@ -275,7 +362,51 @@ class TestReferences(unittest.TestCase):
     def test_comment_sicko_brief_vendored(self):
         brief = SKILLS / "no-comments" / "references" / "comment-sicko.md"
         self.assertTrue(brief.is_file(),
-                        "no-comments needs its relocated agent brief")
+                        "no-comments needs its fallback agent brief")
+
+    def test_comment_sicko_fallback_matches_the_agent(self):
+        """README promises the fallback inlines the same brief. Drift between the
+        two copies means a host without plugin agents gets different rules."""
+        brief = SKILLS / "no-comments" / "references" / "comment-sicko.md"
+        agent = PLUGIN / "agents" / "comment-sicko.md"
+        self.assertEqual(brief.read_text(encoding="utf-8"),
+                         agent.read_text(encoding="utf-8"),
+                         "no-comments fallback brief drifted from the agent")
+
+    def test_upstream_skills_ship_their_support_files(self):
+        support = {
+            "show-me-your-work": ["references/decision-log-template.tsv",
+                                  "scripts/log.sh"],
+            "typescript-best-practices": ["references/patterns.md"],
+            "reflect": ["references/judgment-reviewer.md",
+                        "references/tooling-reviewer.md",
+                        "references/divergent-reviewer.md",
+                        "references/synthesizer.md"],
+            "create-verification-skill": [
+                "references/feature-map-example/README.md",
+                "references/feature-map-example/create-note.md",
+                "references/feature-map-example/search.md",
+            ],
+        }
+        for name, refs in support.items():
+            for ref in refs:
+                self.assertTrue((SKILLS / name / ref).is_file(),
+                                f"{name} is missing {ref}")
+
+    def test_session_helpers_ship(self):
+        self.assertTrue(
+            (SKILLS / "poteto-mode" / "scripts" / "session-store.py").is_file(),
+            "recall and session-pickup need the read-only session store helper")
+
+    def test_backticked_support_paths_resolve(self):
+        """A skill that tells the agent to read `references/x.md` and ships no such
+        file strands the run. Only concrete paths count; prose examples stay out."""
+        pattern = re.compile(
+            r"`(references/[A-Za-z0-9_./-]+\.md|scripts/[A-Za-z0-9_./-]+\.(?:py|sh))`")
+        for path in sorted(SKILLS.rglob("*.md")):
+            for ref in set(pattern.findall(path.read_text(encoding="utf-8"))):
+                self.assertTrue((path.parent / ref).is_file(),
+                                f"{path.relative_to(SKILLS)} cites missing {ref}")
 
 
 class TestFusionContent(unittest.TestCase):
@@ -355,6 +486,8 @@ class TestRouter(unittest.TestCase):
         "tdd",
         "how",
         "why",
+        "teach",
+        "blast-radius",
         "architect",
         "arena",
         "swarm",
@@ -369,6 +502,15 @@ class TestRouter(unittest.TestCase):
         "setup-models",
         "unity-development",
         "unity-development-setup",
+        "typescript-best-practices",
+        "correct",
+        "show-me-your-work",
+        "recall",
+        "reflect",
+        "create-verification-skill",
+        "maintain-verification-skill",
+        "create-formal-verification-skill",
+        "maintain-formal-verification-skill",
     ]
 
     def test_names_every_routable_skill(self):
@@ -419,7 +561,37 @@ class TestModelRoles(unittest.TestCase):
 
     def test_role_reading_skills_name_the_data_file(self):
         for name in ("arena", "swarm", "how", "why", "architect", "interrogate",
-                     "poteto-mode", "setup-models"):
+                     "reflect", "poteto-mode", "setup-models"):
+            text = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn(self.MODELS_FILE, text,
+                          f"{name} must read {self.MODELS_FILE}")
+
+    def test_upstream_skills_ship(self):
+        for name in UPSTREAM_SKILLS:
+            self.assertTrue((SKILLS / name / "SKILL.md").is_file(),
+                            f"upstream skill {name} went missing")
+
+    def test_integrated_upstream_skills_are_model_invocable(self):
+        """poteto-mode opens a decision trail mid-run and type-system-discipline
+        points at the TS skill, so neither may be user-invoked only."""
+        for name in ("show-me-your-work", "typescript-best-practices"):
+            fm = frontmatter(SKILLS / name / "SKILL.md")
+            self.assertNotIn("disable-model-invocation", fm,
+                             f"{name} must stay model-invocable for its caller")
+
+    def test_new_entry_skills_stay_user_invoked(self):
+        for name in ("blast-radius", "correct", "teach", "reflect", "recall",
+                     "create-verification-skill", "maintain-verification-skill",
+                     "create-formal-verification-skill",
+                     "maintain-formal-verification-skill"):
+            fm = frontmatter(SKILLS / name / "SKILL.md")
+            self.assertEqual(fm.get("disable-model-invocation"), "true",
+                             f"{name} must stay user-invoked")
+
+    def test_skills_that_read_role_lines_name_the_data_file(self):
+        """A skill that picks a model must read the configured table, or it
+        silently degrades to the session model."""
+        for name in ("show-me-your-work", "recall"):
             text = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn(self.MODELS_FILE, text,
                           f"{name} must read {self.MODELS_FILE}")
@@ -440,6 +612,8 @@ class TestModelRoles(unittest.TestCase):
             "swarm workers",
             "architect runners",
             "interrogate reviewers",
+            "reflect judgment, divergent, synthesizer",
+            "reflect tooling",
         ):
             self.assertIn(role, setup, f"setup-models dropped the {role} role")
 

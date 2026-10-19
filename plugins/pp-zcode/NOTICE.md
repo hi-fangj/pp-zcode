@@ -4,7 +4,9 @@
 
 This plugin vendors and adapts material from
 https://github.com/cursor/plugins/tree/main/pstack ("pstack") by Lauren Tan,
-licensed MIT. Upstream version at the time of porting: 0.15.28.
+licensed MIT, through the ZCode adaptation at
+https://github.com/ChHsiching/pstack-zcode. Upstream version at the time of
+porting: 0.15.28 (pstack-zcode HEAD `ab00d07`).
 
 **Adapted (rewritten for zcode):**
 
@@ -20,22 +22,45 @@ licensed MIT. Upstream version at the time of porting: 0.15.28.
 - `skills/how/`, `skills/why/`, `skills/architect/`, `skills/swarm/`,
   `skills/arena/`, `skills/unslop/`, `skills/technical-writing/`,
   `skills/benchmark-checklist/`
+- `skills/blast-radius/`, `skills/correct/`, `skills/teach/`,
+  `skills/typescript-best-practices/`, `skills/show-me-your-work/`,
+  `skills/reflect/`, `skills/recall/`, and the four verification skills
+  (`create-verification-skill`, `maintain-verification-skill`,
+  `create-formal-verification-skill`, `maintain-formal-verification-skill`)
 - `skills/interrogate/references/{reviewer-prompt,rubric,code-quality-review,lead-judgment}.md`
   from [pstack-zcode](https://github.com/ChHsiching/pstack-zcode), which adapts
   upstream pstack's `skills/interrogate/references/`.
-- `skills/no-comments/SKILL.md`; its `references/comment-sicko.md` is upstream
-  `agents/comment-sicko.md`, relocated because zcode plugins ship no agents
-  directory.
-- `skills/poteto-mode/playbooks/{investigation,bug-fix,feature,refactoring,prototype,shipping,opening-a-pr}.md`
+- `skills/no-comments/SKILL.md`; its `references/comment-sicko.md` is the
+  upstream agent brief copied for the `general-purpose` fallback.
+- `agents/comment-sicko.md` is upstream `agents/comment-sicko.md`, registered
+  through the plugin manifest's `agents` field.
+- `skills/poteto-mode/playbooks/{investigation,bug-fix,feature,refactoring,prototype,session-pickup,pause-safely,shipping,opening-a-pr}.md`
+- `skills/poteto-mode/scripts/session-store.py` (read-only local session index
+  used by `recall` and the session-pickup playbook)
 
 Cursor-specific names inside vendored files are resolved by the Harness adapter
-in `skills/poteto-mode/SKILL.md`, not by editing the upstream text. The edits
-made anyway are mechanical: the vendored `how`, `why`, `arena`, `swarm`, and
-`no-comments` skills name the bundled execution skill, every skill reference
-uses the qualified `pp-zcode:<name>` form so a user-level skill of the same name
-cannot shadow the bundled copy, and every model-role lookup reads
-`~/.zcode/pp-zcode/models.md` instead of upstream's Cursor rule
-`~/.cursor/rules/pstack-models.mdc`.
+in `skills/poteto-mode/SKILL.md`. Where a bundled skill still had to be edited,
+the edits are mechanical: the vendored `how`, `why`, `arena`, `swarm`,
+`no-comments`, and new upstream skills name the bundled execution skill, every
+skill reference uses the qualified `pp-zcode:<name>` form so a user-level skill
+of the same name cannot shadow the bundled copy, and every model-role lookup
+reads `~/.zcode/pp-zcode/models.md` instead of upstream's Cursor rule
+`~/.cursor/rules/pstack-models.mdc`. Five files were synced past the earlier
+snapshot because their old text invoked Cursor-only mechanics: `why` (MCP
+discovery), `bug-fix` (Cursor `/loop`), `shipping` (Cursor cloud agents and
+`cursor-team-kit` controls), `opening-a-pr` (`Task` and `/deslop`), and
+`no-comments` (`Task` plus an unqualified agent type).
+
+Host-portability edits made beyond renaming: `teach` no longer requires an
+image-generation tool (it falls back to mermaid or ASCII), `tdd` names the
+bundled Refactoring playbook instead of Matt Pocock's unbundled `code-review`
+skill, `show-me-your-work` and `recall` read model roles from
+`~/.zcode/pp-zcode/models.md` instead of asking for a "different family" or a
+"fast, cheap model" with no configured seat, `reflect` files backlog items to
+the project tracker named in `docs/agents/issue-tracker.md`, `pipeline-accept`
+records a browser-driven row as `unverified` when the browser-use plugin is
+absent, and `typescript-best-practices` drops the unsupported `paths`
+frontmatter key.
 
 **Original to this plugin:** `skills/ask/`, `skills/implement-spec/`,
 `skills/pipeline-accept/`, `skills/pipeline-status/`, `skills/setup-models/`

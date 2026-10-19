@@ -64,11 +64,13 @@ the todo list, and every spawn. You own only the scope below.
 | Upstream's `tdd` skill | Use the bundled `pp-zcode:tdd`: failing test at the spec's seam, then the change, then the full check. |
 | `interrogate` (contested design) | Use the bundled `pp-zcode:interrogate`: one reviewer per configured model, synthesized into one verdict. Still contested after synthesis → put the fork to the user. |
 | `figure-it-out` (bespoke playbook for large work) | Hand the work back: large or cross-cutting work gets split into tickets with `pp-zcode:to-tickets` and handed over through `pp-zcode:implement-spec`, not improvised here. |
-| `show-me-your-work` (decision trail) | The decision trail lives in the ticket files and the `pp-zcode:pipeline-accept` report. |
+| `perf-issue` playbook | Not bundled. Run the Bug fix playbook with a captured baseline, and vet every number through `pp-zcode:benchmark-checklist`. |
+| `hillclimb` playbook | Not bundled. Loop one hypothesis at a time against a frozen harness, keeping the `pp-zcode:benchmark-checklist` rules, and log each attempt with `pp-zcode:show-me-your-work`. |
+| `show-me-your-work` (decision trail) | Use the bundled `pp-zcode:show-me-your-work`: one TSV, one row per decision. Ticket files and the `pp-zcode:pipeline-accept` report still hold the spec-level record. |
 | `babysit` playbook and `scripts/watch-pr` | Use `gh pr checks --watch <pr>` and `gh pr view` in a loop. |
 | `deslop` from cursor-team-kit | The bundled `pp-zcode:unslop` and `pp-zcode:no-comments` skills cover it. |
 | `control-ui` / `control-cli` | Web UI: the `browser-use` plugin skills (`web-gui-tester`, `control-browser`) when installed. CLI: run it directly. Otherwise skip with a line. |
-| Cursor `/loop` | Re-invoke the step or poll the background task with `TaskOutput`. |
+| Cursor `/loop` | Re-invoke the step each round, or read the background task's output file; a background agent notifies on completion. |
 | Bugbot, Cursor cloud agents, Automations, built-in PR tool | Skip with one line `Skipped in zcode: <step>. <reason>.` and continue. Use `gh` for PR operations. |
 
 **Unity repositories.** When the repository declares `pp-zcode:unity-development` in its agent instructions, or has `docs/agents/unity-development.md`, load `pp-zcode:unity-development` before choosing a feedback loop. Its compiler/EditMode/PlayMode evidence matrix and its optional-test-first rule override the generic TDD assumption in every playbook. If the repository is Unity but that document is missing, say so and offer `pp-zcode:unity-development-setup`; do not invent commands.
@@ -92,7 +94,7 @@ Remaining triggers:
 - Running a benchmark, measuring perf yourself, or reporting a speedup or regression you measured → `pp-zcode:benchmark-checklist` before you report or act on the number.
 - Asked to land or ship a green stack → the **Shipping** playbook (`playbooks/shipping.md`). Green is not safe. Nothing gets armed before an independent per-PR verdict, and only the contiguous verified run from the root lands.
 - Broken skill mid-task → fix it in its own PR. Don't block. Don't silently work around it.
-- Long, autonomous, or multi-phase work → the decision trail lives in the ticket files and the `pp-zcode:pipeline-accept` report (see Substitutions).
+- Long, autonomous, or multi-phase work → open a decision trail with `pp-zcode:show-me-your-work`. Ticket files and the `pp-zcode:pipeline-accept` report hold the spec-level record.
 
 ## Principles
 
@@ -184,6 +186,8 @@ Open a todolist whose first items are the matched playbook's steps, copied in ve
 - **Feature.** New or changed behavior, built from a named data shape.
 - **Refactoring.** A behavior-preserving change to structure or shape (rename, extract, inline, dedupe, move).
 - **Prototype.** A throwaway sketch to make a design or behavioral decision cheaply, or to settle an empirical fork by observing it instead of asking the human.
+- **Session pickup.** Resume a prior run from its session trail and branch state instead of redoing it.
+- **Pause safely.** Leave a clean checkpoint a cold-start agent can resume from. Explicit only.
 - **Shipping.** Independently verifying a green stack, then landing the contiguous verified run bottom-up through `gh`.
 - **Opening a PR.** Invoked at the end of every other playbook.
 

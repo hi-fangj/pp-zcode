@@ -18,9 +18,9 @@ Load the spec and every ticket from the tracker. Lay out one row per acceptance 
 
 For each row, in order of strength:
 
-1. **Re-run it now.** The project's verification commands from `AGENTS.md` (build, tests, lint) against the delivered state. Prefer running them yourself or through the `glm-tester` agent; the summary returns here. This is the only evidence that makes a row `pass` without argument.
+1. **Re-run it now.** The project's verification commands from `AGENTS.md` (build, tests, lint) against the delivered state. Prefer running them yourself, or through the `glm-tester` agent when the host has it; the summary returns here. This is the only evidence that makes a row `pass` without argument.
 2. **Read this session's real output.** A verification run from Phase 3 counts only if its output is present in the session and covers the delivered commit. Cite the command and the key output line.
-3. **Inspect the artifact.** For behavior a command cannot reach (visual output, device-only behavior, manual acceptance items the spec named), inspect the actual artifact or screenshots from this session, or drive the surface yourself via the browser-use skills when it is a web UI.
+3. **Inspect the artifact.** For behavior a command cannot reach (visual output, device-only behavior, manual acceptance items the spec named), inspect the actual artifact or screenshots from this session. For a web UI, drive it yourself with the browser-use plugin skills when they are installed; when they are not, record the row as `unverified: <the interaction a person must perform>` instead of inferring it from code.
 
 Classify each row:
 

@@ -35,5 +35,5 @@ For a quick ballpark the user asked for, one run is enough. Still check question
 
 ## Other perf material
 
-- Vet the **Perf issue** playbook's baseline before the playbook plans from it, and every number after that.
-- Vet the **Hillclimb** playbook's harness before it is frozen. The frozen harness then prints error and work counts, so each keep-or-revert checks questions 4 and 7 for free.
+- Vet a perf-improvement baseline before the work plans from it, and every number after that. The upstream Perf issue playbook is not bundled; run it through the Bug fix playbook with a captured baseline.
+- Vet an improvement harness before it is frozen. The frozen harness then prints error and work counts, so each keep-or-revert checks questions 4 and 7 for free. The upstream Hillclimb playbook is not bundled; loop one hypothesis at a time and log each attempt with `pp-zcode:show-me-your-work`.

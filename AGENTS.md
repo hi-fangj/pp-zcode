@@ -16,7 +16,7 @@ Single-context: one `GLOSSARY.md` + `docs/adr/` at the repo root. See `docs/agen
 
 ## Pipeline
 
-Requirements skills ship bundled (`pp-zcode:grilling`, `pp-zcode:to-spec`, `pp-zcode:to-tickets`, plus `grill-me`, `grill-with-docs`, `domain-modeling`, `setup-matt-pocock-skills`, `triage`, `tdd`, and `codebase-design`). Grilling settles requirements; `pp-zcode:to-spec` publishes a spec to the tracker; large work is split into tickets with `pp-zcode:to-tickets`. Execution is `pp-zcode:implement-spec` (spec or ticket backed) or `pp-zcode:poteto-mode` (a direct task); `pp-zcode:pipeline-accept` gates delivery on evidence. `pp-zcode:interrogate` runs an adversarial review panel and `pp-zcode:setup-models` writes the role → model table (`~/.zcode/pp-zcode/models.md`) every execution-side skill reads at spawn time. Unity projects run `pp-zcode:unity-development-setup` once, then load `pp-zcode:unity-development` for implementation and verification. When the fit is unclear, `pp-zcode:ask` routes a situation to the right skill or flow; it never forces a chain.
+Requirements skills ship bundled (`pp-zcode:grilling`, `pp-zcode:to-spec`, `pp-zcode:to-tickets`, plus `grill-me`, `grill-with-docs`, `domain-modeling`, `setup-matt-pocock-skills`, `triage`, `tdd`, and `codebase-design`). Grilling settles requirements; `pp-zcode:to-spec` publishes a spec to the tracker; large work is split into tickets with `pp-zcode:to-tickets`. Execution is `pp-zcode:implement-spec` (spec or ticket backed) or `pp-zcode:poteto-mode` (a direct task); `pp-zcode:pipeline-accept` gates delivery on evidence. `pp-zcode:interrogate` runs an adversarial review panel and `pp-zcode:setup-models` writes the role → model table (`~/.zcode/pp-zcode/models.md`) every execution-side skill reads at spawn time. `pp-zcode:reflect` routes session learnings into skill edits and `pp-zcode:recall` rebuilds context across sessions. Unity projects run `pp-zcode:unity-development-setup` once, then load `pp-zcode:unity-development` for implementation and verification. When the fit is unclear, `pp-zcode:ask` routes a situation to the right skill or flow; it never forces a chain.
 Specs and tickets live on the tracker configured in docs/agents/issue-tracker.md.
 
 Every skill is invoked and cross-referenced by its qualified name `pp-zcode:<name>`. The bare alias can be shadowed by a user-level skill of the same name; never rely on it.
@@ -43,6 +43,8 @@ session that claims it. What this environment cannot run is recorded as
 - Every bundled skill is called and cross-referenced as `pp-zcode:<name>`; bare names may appear only as descriptive prose, never as an invocation or routing target.
 - Model roles are read from `~/.zcode/pp-zcode/models.md`; no skill may reference the Cursor rule `~/.cursor/rules/pstack-models.mdc` or hardcode a model slug.
 - Fusion skills ship no unresolved `{{ }}` placeholders.
+- Bundled skills contain no Cursor-only mechanics (`Task` tool, Cursor `/loop`, `cursor-team-kit`, cloud agents, Cursor MCP discovery) outside the Harness adapter and Substitutions tables in `poteto-mode`.
+- Subagent skills register their agent under `agents/` and declare it in the plugin manifest's `agents` field; the skill keeps an inline `general-purpose` fallback for hosts that do not load plugin agents.
 
 ## Manual acceptance items
 

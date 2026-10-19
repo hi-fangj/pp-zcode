@@ -74,6 +74,8 @@ arena cross-judge pool: inherit-parent
 swarm workers: inherit-parent
 architect runners: inherit-parent
 interrogate reviewers: inherit-parent
+reflect judgment, divergent, synthesizer: inherit-parent
+reflect tooling: inherit-parent
 ```
 
 Then generate `~/.zcode/agents/pp-zcode-<role>.md` for every scalar role pinned to a real model. Panel roles name their models in the list and get no preset. The preset name is `pp-zcode-` plus the role line lowercased, with each `", "` sequence and each remaining space replaced by one hyphen (`feature, refactoring` → `pp-zcode-feature-refactoring`). Put the model in `model`, the leveled form `providerId/modelId@<level>` split into `model` plus `thoughtLevel`, and this body with the role and its owning skill filled in:
@@ -105,6 +107,8 @@ Owning skill per role:
 | `why investigators` | `../why/references/investigator-prompt.md` |
 | `why synthesizer` | `../why/references/synthesizer-prompt.md` |
 | `swarm workers` | `../swarm/SKILL.md` |
+| `reflect judgment, divergent, synthesizer` | `../reflect/SKILL.md` |
+| `reflect tooling` | `../reflect/SKILL.md` |
 
 Resolve every path against the installed pp-zcode skills directory before writing, and write the absolute resolved path into the preset. Delete any preset whose role is no longer pinned. Preset files apply to new sessions.
 

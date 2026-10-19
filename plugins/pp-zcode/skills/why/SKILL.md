@@ -10,7 +10,7 @@ Investigate the motivation and intent behind code. The companion `pp-zcode:how` 
 
 Each spawn below names a role line in `~/.zcode/pp-zcode/models.md`. A line pinning a model runs on its preset subagent, `pp-zcode-<role>` (written by `pp-zcode:setup-models`); spawn the preset by name. An `inherit-parent` or missing line leaves the model unset, so the subagent follows the session model. If a spawn rejects a pinned model, leave the model unset and say so.
 
-Every spawn is a `generalPurpose` agent. Investigators and the synthesizer need full tool access, so they keep write tools even though they should not write anything. **Read-only mode strips MCP access**, which disables the MCP-backed investigators and the synthesizer's citation spot-checks.
+Every spawn is a `general-purpose` agent. Investigators and the synthesizer need full tool access, so they keep write tools even though they should not write anything. **Read-only mode strips MCP access**, which disables the MCP-backed investigators and the synthesizer's citation spot-checks.
 
 ## Operating Posture
 
@@ -20,7 +20,7 @@ Operate as a **careful, cautious, and precise investigator**. Be honest about wh
 
 The **target** is usually a chunk of code, a pattern, a feature, or a named design decision. The **question** is usually a design rationale, a tradeoff, a motivating edge case, an external constraint, dead code, or a broad history sweep.
 
-If the target is vague ("why do we do it this way?" with no clear referent), make your best guess from conversation context (open files, recent edits, cursor location, what was just discussed). State your interpretation briefly so the user can redirect if you're off, then proceed.
+If the target is vague ("why do we do it this way?" with no clear referent), make your best guess from conversation context (open files, recent edits, what was just discussed). State your interpretation briefly so the user can redirect if you're off, then proceed.
 
 ## Step 2. Establish the Code Anchor
 
@@ -32,7 +32,7 @@ Before spawning investigators, build the seed context inline: file paths and lin
 
 ### Discovery
 
-Before spawning investigators, list the available MCPs from the Cursor environment. Use the available-tools map when present. Otherwise inspect the `mcps/` directory Cursor exposes for enabled MCP servers.
+Before spawning investigators, list the available MCPs from this session's tools (MCP tools are named `mcp__<server>__<tool>`). Use the available-tools map when present. Otherwise read the MCP servers configured in `~/.zcode/cli/config.json`.
 
 Map each available MCP to one evidence category:
 

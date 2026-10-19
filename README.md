@@ -39,6 +39,8 @@ zcode 会把插件技能同时注册为 `pp-zcode:<name>` 和裸名 `<name>`。�
 ```
 plugins/pp-zcode/
 ├── .zcode-plugin/plugin.json
+├── agents/
+│   └── comment-sicko.md              只读注释审查子代理（no-comments 调用）
 └── skills/
     ├── ask/                          入口：按处境路由到合适的技能或流程
     ├── grilling/                     Pocock 需求侧：逐轮追问，设计树推进
@@ -54,13 +56,25 @@ plugins/pp-zcode/
     ├── implement-spec/               ★ 桥接：从 tracker 取 spec/工单，构建交接简报，交给引擎
     │   └── references/               交接简报模板、目标项目 AGENTS.md 片段
     ├── poteto-mode/                  执行引擎（pstack poteto-mode 的 zcode 移植版）
-    │   └── playbooks/                investigation / bug-fix / feature /
-    │                                 refactoring / prototype / shipping / opening-a-pr
+    │   ├── playbooks/                investigation / bug-fix / feature / refactoring /
+    │   │                             prototype / session-pickup / pause-safely /
+    │   │                             shipping / opening-a-pr
+    │   └── scripts/                  session-store.py（只读会话检索）
     ├── pipeline-accept/              ★ 最终验收门：spec 验收标准 × 证据矩阵
     ├── pipeline-status/              只读进度查询：阶段判定 + 工单表 + 下一步归属
-    ├── how / why / architect / swarm / arena    执行侧路由技能
+    ├── how / why / teach / blast-radius / architect / swarm / arena   执行侧路由技能
     ├── interrogate/                  ★ 对抗评审：按配置的模型面板逐一向变更开火，合成一个裁决
     │   └── references/               评审提示词、评分表、代码质量视角、主审判断框架
+    ├── reflect/                      会话复盘：三个视角并行审查，学习点路由到技能编辑
+    │   └── references/               判断 / 工具 / 发散评审提示词 + 合成器
+    ├── recall/                       跨会话重建近期上下文，输出现状简报
+    ├── show-me-your-work/            长任务决策日志（TSV + log.sh + 模板）
+    ├── correct/                      把重复出现的 agent 错误固化成架构 / 类型 / lint / 测试
+    ├── typescript-best-practices/    TS 类型纪律与 patterns.md
+    ├── create-verification-skill/    生成项目级 verify-<app> 技能与 feature map
+    ├── maintain-verification-skill/  定期校正 verify 技能与 feature map
+    ├── create-formal-verification-skill/   生成项目级形式化验证技能
+    ├── maintain-formal-verification-skill/ 代码变更后让形式化验证回到同步状态
     ├── setup-models/                 ★ 模型角色配置：写 ~/.zcode/pp-zcode/models.md，生成预设 agent
     ├── unity-development/            Unity 执行参考：按层选编译 / EditMode / PlayMode / 手动证据
     │   └── references/               证据矩阵、test-first 准入条件、命令层级
@@ -70,9 +84,11 @@ plugins/pp-zcode/
     └── principle-*/（24 个）          pstack 原则微技能
 ```
 
+插件还随包携带 `agents/comment-sicko.md`（`no-comments` 的只读注释审查子代理）。`plugin.json` 的 `agents` 字段指向该目录；agent 不可用时 `no-comments` 回落到 `general-purpose` 并内联同一份 brief。
+
 插件图标在仓库根的 `assets/icon.png`（512×512，SVG 源文件同目录）。ZCode 的市场卡片按 HTTPS URL 加载图标，`marketplace.json` 的 `icon` 指向本仓库该文件的 raw 地址；仓库为私有时 raw 地址不可匿名读取，卡片会退回默认图标。
 
-移植方式沿用 pstack 官方的适配层做法：上游技能**原样保留**，所有 Cursor 专有名称（Task、模型 slug、cloud agent、Bugbot 等）集中在 `poteto-mode` 的 Harness adapter 一张表里映射到 zcode 的对应物（`Agent`、宿主的 glm-coder / glm-reviewer / glm-tester 等专项 agent、`gh`、browser-use 技能）。未随插件携带的上游技能（`figure-it-out`、`show-me-your-work`、babysit 等）在 Substitutions 表里给了明确的替代行为，不靠猜。`interrogate` 随插件打包，替代原先"spawn 一个 glm-reviewer"的单点替代。
+移植方式沿用 pstack 官方的适配层做法：上游技能**原样保留**，所有 Cursor 专有名称（Task、模型 slug、cloud agent、Bugbot 等）集中在 `poteto-mode` 的 Harness adapter 一张表里映射到 zcode 的对应物（`Agent`、宿主的 glm-coder / glm-reviewer / glm-tester 等专项 agent、`gh`、browser-use 技能）。未随插件携带的上游技能（`figure-it-out`、babysit、orchestrate 等）在 Substitutions 表里给了明确的替代行为，不靠猜。`interrogate` 随插件打包，替代原先"spawn 一个 glm-reviewer"的单点替代。
 
 Pocock 技能按上游原文打包，只做了一处机械改动：技能之间的调用与指引改成 `pp-zcode:<name>` 限定名。唯一的内容融合在 `tdd`：保留 Pocock 的测试方法论，并并入 pstack 的 bug 修复循环、跳过规则与证据报告。
 
@@ -156,6 +172,8 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 | 新功能或行为变更 | feature |
 | 重命名、提取、去重等行为不变的结构调整 | refactoring |
 | 设计或实证分歧，用一次性草图定夺 | prototype |
+| 接手一个上次没做完的会话 | session-pickup（先读旧轨迹，不重做） |
+| 要停下、交给下一个会话继续 | pause-safely（`wip:` commit + 恢复笔记） |
 | 一摞已绿的 PR 要落地 | shipping（先独立复核，只落连续验证段） |
 | 收尾开 PR | opening-a-pr（每个 playbook 的最后一步） |
 
@@ -172,6 +190,17 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 | 多个方案同题比稿，选底座再嫁接 losers 的强项 | `/pp-zcode:arena` |
 | 对抗评审：多模型独立挑刺，合成一个裁决 | `/pp-zcode:interrogate` |
 | 配置执行侧各席位的模型与推理档位 | `/pp-zcode:setup-models` |
+| 把一段东西真正讲明白（how + why 合成） | `/pp-zcode:teach` |
+| 小改动怕炸到别处，先查影响面 | `/pp-zcode:blast-radius` |
+| 长任务 / 无人值守工作留可审计决策日志 | `/pp-zcode:show-me-your-work` |
+| 同一类 agent 错误反复出现，想从结构上堵掉 | `/pp-zcode:correct` |
+| 写或改 `.ts` / `.tsx`，先对齐类型纪律 | `/pp-zcode:typescript-best-practices` |
+| 会话复盘，把经验落回技能 | `/pp-zcode:reflect` |
+| 跨会话恢复上下文，先知道上次停在哪 | `/pp-zcode:recall` |
+| 项目没有可脚本化驱动真实应用的手段 | `/pp-zcode:create-verification-skill` |
+| 保持 verify 技能与 feature map 不腐烂 | `/pp-zcode:maintain-verification-skill` |
+| 并发 / 状态机 / 解析器需要测试之外的证明 | `/pp-zcode:create-formal-verification-skill` |
+| 代码变了，形式化验证要重新对齐 | `/pp-zcode:maintain-formal-verification-skill` |
 | 写文档、RFC、README、PR 描述、commit message | `/pp-zcode:technical-writing` |
 | 去掉文字里的 AI 腔 | `/pp-zcode:unslop` |
 | 审查代码里的注释是否该留 | `/pp-zcode:no-comments` |
@@ -192,7 +221,8 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 
 ## 实施路线
 
-- **v0.7（当前）**：移植 pstack-zcode 的模型角色机制：新增 `pp-zcode:setup-models`（角色表 + 预算档位 + 预设 agent + workflow 刷新）与 `pp-zcode:interrogate`（多模型对抗评审）；执行侧技能改为读取 `~/.zcode/pp-zcode/models.md`，不再引用 Cursor 规则或写死模型 slug。
+- **v0.8（当前）**：对齐 pstack-zcode v0.15.28。修正 `why`、`bug-fix`、`shipping`、`opening-a-pr` 里会在 zcode 下失效的 Cursor 机制；`no-comments` 改走插件自带 `comment-sicko` agent（缺失时回落 `general-purpose`）。新增上游技能 `show-me-your-work`、`blast-radius`、`correct`、`teach`、`typescript-best-practices`、`reflect`、`recall`、`create-verification-skill`、`maintain-verification-skill`、`create-formal-verification-skill`、`maintain-formal-verification-skill`，以及 `session-pickup` / `pause-safely` 两个 playbook；`setup-models` 增加 reflect 角色行。
+- **v0.7**：移植 pstack-zcode 的模型角色机制：新增 `pp-zcode:setup-models`（角色表 + 预算档位 + 预设 agent + workflow 刷新）与 `pp-zcode:interrogate`（多模型对抗评审）；执行侧技能改为读取 `~/.zcode/pp-zcode/models.md`，不再引用 Cursor 规则或写死模型 slug。
 - **v0.6**：新增 `pp-zcode:ask` 技能路由器：按处境把工作导向插件内合适的技能与流程，不引入强制链条。
 - **v0.5**：Pocock 需求侧技能（含 triage）随插件打包，所有技能统一以 `pp-zcode:<name>` 限定名调用与互相引用，避免用户级同名技能遮蔽。
 - **v0.4**：去掉中央路由。需求链自由组合，`implement-spec` 桥接 + `poteto-mode` 直入口；串行闭环维持。

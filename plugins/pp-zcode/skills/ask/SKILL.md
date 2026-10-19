@@ -18,7 +18,7 @@ Reply in the language of the conversation.
 
 1. Read the situation for the **deliverable** (a decision, a spec, a code change, a review, a status answer) and for what **already exists** (a settled idea, a spec, tickets, a failing test).
 2. Pick the earliest unresolved stage on the main flow, or the matching standalone skill. State the route in one line, with the reason.
-3. If the user asked for the work to be done, invoke the chosen skill by its qualified name and proceed. If they only asked which skill fits, stop after the route. When two routes are genuinely tied, name both and ask one question.
+3. If the user asked for the work to be done, invoke the chosen skill by its qualified name and proceed. If the `Skill` tool refuses a user-invoked skill, `Read` its `SKILL.md` and follow it. If they only asked which skill fits, stop after the route. When two routes are genuinely tied, name both and ask one question.
 
 ## Main flow: idea → ship
 
@@ -48,6 +48,8 @@ Standalone, reachable at any point:
 
 - `pp-zcode:how` — how a subsystem works, its runtime flow, or where code should live.
 - `pp-zcode:why` — why the code took this shape: decisions, tradeoffs, regressions, postmortems.
+- `pp-zcode:teach` — one plain explanation built from `how` + `why`, scaled to the listener.
+- `pp-zcode:blast-radius` — what a change could break beyond the diff, with the safety fact proven by running code.
 - `pp-zcode:architect` — sketch types, signatures, and module boundaries before writing code.
 - `pp-zcode:arena` — run several candidates at one non-trivial task, pick a base, graft the strongest parts.
 - `pp-zcode:swarm` — fan out parallel workers and return one report.
@@ -56,6 +58,12 @@ Standalone, reachable at any point:
 - `pp-zcode:unslop` — cut AI tells from any prose.
 - `pp-zcode:no-comments` — strip comments before review; keep only what the code cannot say.
 - `pp-zcode:benchmark-checklist` — vet a performance number before reporting or acting on it.
+- `pp-zcode:typescript-best-practices` — TypeScript type disciplines, with patterns for every rule.
+- `pp-zcode:correct` — turn a repeated agent mistake into architecture, a type, a lint, or a test that makes it impossible.
+- `pp-zcode:show-me-your-work` — a reviewable TSV decision trail for long, autonomous, or multi-phase work.
+- `pp-zcode:poteto-mode`'s Pause safely playbook — leave a resume note and a `wip:` commit so a cold-start agent can continue.
+- `pp-zcode:recall` — rebuild recent working context across chats before resuming work.
+- `pp-zcode:reflect` — mine this session for durable learnings and route them into skill edits.
 - `pp-zcode:tdd` — the red → green loop, including the bug-fix regression loop.
 - `pp-zcode:unity-development` — implementation, fixes, refactors, and testing in a Unity repository: compile, EditMode/PlayMode, scene/prefab, and manual evidence instead of assuming a conventional test suite. Pair with `pp-zcode:unity-development-setup` once per Unity project.
 
@@ -84,3 +92,5 @@ These are references, not sessions: reach for them when the words, not the proce
 `pp-zcode:setup-matt-pocock-skills` configures the issue tracker, triage labels, and domain docs the flow assumes. Run it once per project before the first flow.
 
 A Unity project also runs `pp-zcode:unity-development-setup` once: it writes the project's verification matrix to `docs/agents/unity-development.md` and declares `pp-zcode:unity-development` in the repository's agent instructions.
+
+A project with no scripted way to drive its real surface can run `pp-zcode:create-verification-skill` once, which writes a project-local `verify-<app>` skill and a feature map; `pp-zcode:maintain-verification-skill` keeps that map honest. For a property tests cannot reach, `pp-zcode:create-formal-verification-skill` builds a project-local formal check, and `pp-zcode:maintain-formal-verification-skill` brings it back in line after code changes.

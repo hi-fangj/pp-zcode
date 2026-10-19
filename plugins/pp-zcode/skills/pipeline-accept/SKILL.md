@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Pipeline Accept: the spec is the only judge
 
-Acceptance compares the delivered work against the spec's acceptance criteria and each ticket's criteria, one by one, with evidence. It does not re-review code style (that was Phase 3's independent review), and it does not discover new requirements.
+Acceptance compares the delivered work against the spec's acceptance criteria and each ticket's criteria, one by one, with evidence. It does not re-review code style (that was the execution skill's independent review through `pp-zcode:code-review`), and it does not discover new requirements.
 
 ## Process
 
@@ -19,7 +19,7 @@ Load the spec and every ticket from the tracker. Lay out one row per acceptance 
 For each row, in order of strength:
 
 1. **Re-run it now.** The project's verification commands from `AGENTS.md` (build, tests, lint) against the delivered state. Prefer running them yourself, or through the `glm-tester` agent when the host has it; the summary returns here. This is the only evidence that makes a row `pass` without argument.
-2. **Read this session's real output.** A verification run from Phase 3 counts only if its output is present in the session and covers the delivered commit. Cite the command and the key output line.
+2. **Read this session's real output.** A verification run from the execution review (the `pp-zcode:code-review` pass inside `pp-zcode:poteto-mode`) counts only if its output is present in the session and covers the delivered commit. Cite the command and the key output line.
 3. **Inspect the artifact.** For behavior a command cannot reach (visual output, device-only behavior, manual acceptance items the spec named), inspect the actual artifact or screenshots from this session. For a web UI, drive it yourself with the browser-use plugin skills when they are installed; when they are not, record the row as `unverified: <the interaction a person must perform>` instead of inferring it from code.
 
 Classify each row:
@@ -28,7 +28,11 @@ Classify each row:
 - **fail** — evidence contradicts the criterion. Name the exact expectation, the actual result, and the ticket to reopen.
 - **unverified** — no executable evidence exists and the surface is out of reach. Name precisely what is needed (a device, a deploy, a human observation). Never let an unverified row read as done.
 
-### 3. Emit the acceptance report
+### 3. Sweep the diff against the spec (code → spec)
+
+Criteria can all pass while the diff also does things nobody asked for — the matrix only checks the spec → code direction. Once every row is `pass`, run the Spec axis of `pp-zcode:code-review` over the delivered diff against the spec (ticketed runs: the whole ticket set). Report its findings separately from the matrix: a missing or wrongly implemented requirement becomes a `fail` row on the named ticket; behaviour nobody asked for (scope creep) is reported below the matrix and routed in step 5. A clean sweep is stated in one line.
+
+### 4. Emit the acceptance report
 
 One line per criterion plus a verdict:
 
@@ -37,13 +41,15 @@ Acceptance: <spec title> — <PASS | FAIL | PARTIAL, N unverified>
   [PASS] spec §Solution: <criterion> — <command run> → <key output line>
   [FAIL] ticket 03: <criterion> — expected <X>, got <Y> (evidence: <run>)
   [UNVERIFIED] spec §Stories: <criterion> — needs <manual step / device>
-Routing: <one sentence per fail or unverified row>
+  [SCOPE] code → spec sweep: <unrequested behaviour> — not asked for by spec or tickets
+Routing: <one sentence per fail, unverified, or scope row>
 ```
 
-### 4. Route by the failure's home
+### 5. Route by the failure's home
 
 - A `fail` whose criterion is right → reopen the named ticket: back to `pp-zcode:poteto-mode` with the failing evidence attached. Execution bugs do not touch the spec.
 - A `fail` or `unverified` that reveals the criterion itself is wrong, missing, or untestable → back to `pp-zcode:to-spec` with the named question; re-ticket only the delta afterward.
-- All rows `pass` → the run is complete. Update ticket states to their final values and say so plainly.
+- Scope creep the sweep found → back to `pp-zcode:poteto-mode` to remove it or justify keeping it; if it deserves to be a requirement, it goes through `pp-zcode:to-spec` and is re-ticketed as a delta first.
+- All rows `pass` and the sweep clean → the run is complete. Update ticket states to their final values and say so plainly.
 
 Push back when it is warranted. If the work satisfies the spec but the spec now looks wrong, say it in the report's routing section. Acceptance reports the truth of spec versus evidence; it does not bless effort.

@@ -52,9 +52,8 @@ discovery), `bug-fix` (Cursor `/loop`), `shipping` (Cursor cloud agents and
 `no-comments` (`Task` plus an unqualified agent type).
 
 Host-portability edits made beyond renaming: `teach` no longer requires an
-image-generation tool (it falls back to mermaid or ASCII), `tdd` names the
-bundled Refactoring playbook instead of Matt Pocock's unbundled `code-review`
-skill, `show-me-your-work` and `recall` read model roles from
+image-generation tool (it falls back to mermaid or ASCII), `show-me-your-work`
+and `recall` read model roles from
 `~/.zcode/pp-zcode/models.md` instead of asking for a "different family" or a
 "fast, cheap model" with no configured seat, `reflect` files backlog items to
 the project tracker named in `docs/agents/issue-tracker.md`, `pipeline-accept`
@@ -82,7 +81,7 @@ install present at the time of porting.
 - `skills/to-spec/`, `skills/to-tickets/`
 - `skills/setup-matt-pocock-skills/`
 - `skills/triage/`
-- `skills/tdd/`, `skills/codebase-design/`
+- `skills/tdd/`, `skills/codebase-design/`, `skills/code-review/`
 
 Each skill keeps its upstream `SKILL.md`, reference files, and `agents/openai.yaml`
 metadata.
@@ -91,4 +90,9 @@ metadata.
 skill now use `pp-zcode:<name>` (for example `pp-zcode:grilling`), so a user-level
 skill of the same name cannot shadow the bundled copy. The same qualification was
 applied to references in this plugin's own skills and in generated project docs.
-Upstream prose and process are otherwise unchanged.
+Upstream prose and process are otherwise unchanged. `skills/code-review/` goes
+one step further: its two reviewers spawn through the host's `Agent` tool
+(`glm-reviewer` when present), its issue lookup follows the tracker workflow in
+`docs/agents/issue-tracker.md`, and it is wired into the pipeline as the
+independent review in `poteto-mode` and the code → spec sweep in
+`pipeline-accept`.

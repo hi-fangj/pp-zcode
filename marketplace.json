@@ -4,14 +4,14 @@
     {
       "name": "pp-zcode",
       "source": "./plugins/pp-zcode",
-      "version": "0.8.0",
-      "description": "Pocock × PStack in one plugin: Matt Pocock's requirements skills ship bundled, implement-spec bridges a spec or ticket set to the poteto-mode execution engine (a zcode port of pstack), pipeline-accept gates delivery on evidence, and interrogate runs a multi-model adversarial review panel. Model roles are configured per host in ~/.zcode/pp-zcode/models.md. Invoke every skill by its qualified pp-zcode:<name> so a user-level install of the same skill cannot shadow it.",
+      "version": "0.9.0",
+      "description": "Pocock × PStack in one plugin: Matt Pocock's requirements skills ship bundled, implement-spec bridges a spec or ticket set to the poteto-mode execution engine (a zcode port of pstack), poteto-mode's independent review runs the bundled two-axis code-review, pipeline-accept gates delivery on evidence plus a code → spec sweep, and interrogate runs a multi-model adversarial review panel. Model roles are configured per host in ~/.zcode/pp-zcode/models.md. Invoke every skill by its qualified pp-zcode:<name> so a user-level install of the same skill cannot shadow it.",
       "displayName": "PP · Pocock × PStack",
       "displayName_i18n": {
         "zh-CN": "PP 融合流水线"
       },
       "description_i18n": {
-        "zh-CN": "Pocock 需求技能随插件打包，implement-spec 把 spec/工单交接给 poteto-mode 执行引擎（pstack 移植版），pipeline-accept 凭证据验收，interrogate 提供多模型对抗评审；各席位模型经 ~/.zcode/pp-zcode/models.md 配置；所有技能以 pp-zcode:<name> 限定名调用，避免被用户级同名技能遮蔽"
+        "zh-CN": "Pocock 需求技能随插件打包，implement-spec 把 spec/工单交接给 poteto-mode 执行引擎（pstack 移植版），执行侧独立评审走打包的双轴 code-review，pipeline-accept 凭证据验收并做 code → spec 补扫，interrogate 提供多模型对抗评审；各席位模型经 ~/.zcode/pp-zcode/models.md 配置；所有技能以 pp-zcode:<name> 限定名调用，避免被用户级同名技能遮蔽"
       },
       "icon": "https://raw.githubusercontent.com/hi-fangj/pp-zcode/main/assets/icon.png",
       "category": "developer-tools"

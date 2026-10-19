@@ -1,10 +1,10 @@
 # pp-zcode
 
-融合两套上游体系的 zcode 插件，两侧技能都随插件打包：**Matt Pocock 的 Skills** 负责需求工程（做什么、做到什么程度），**PStack（poteto-mode）** 负责工程执行（怎么做、如何证明做对了）。没有强制中央路由（可选的 `pp-zcode:ask` 只负责指路）：需求侧技能自由组合，工作多小、流程就多短；`implement-spec` 把 spec（及其工单）交接给 `poteto-mode` 执行引擎，`pipeline-accept` 凭证据逐条验收。
+融合两套上游体系的 zcode 插件，两侧技能都随插件打包：**Matt Pocock 的 Skills** 负责需求工程（做什么、做到什么程度），**PStack（poteto-mode）** 负责工程执行（怎么做、如何证明做对了）。没有强制中央路由（可选的 `pp-zcode:ask` 只负责指路）：需求侧技能自由组合，工作多小、流程就多短；`implement-spec` 把 spec（及其工单）交接给 `poteto-mode` 执行引擎，执行侧的独立评审走 Pocock 的双轴 `code-review`，`pipeline-accept` 凭证据逐条验收并补扫范围蔓延。
 
 ```
 pp-zcode:grilling → pp-zcode:to-spec → (pp-zcode:to-tickets) │ pp-zcode:implement-spec │ pp-zcode:poteto-mode → pp-zcode:pipeline-accept
-     Pocock              Pocock              Pocock          │         桥接交接        │     pstack 移植           逐条验收
+     Pocock              Pocock              Pocock          │         桥接交接        │ pstack 移植，独立评审走 code-review   逐条验收 + code→spec 补扫
 ```
 
 ## 命名与防冲突
@@ -25,13 +25,13 @@ zcode 会把插件技能同时注册为 `pp-zcode:<name>` 和裸名 `<name>`。�
 | 规格设计 | 本插件 `pp-zcode:to-spec` | tracker 上的 spec（验收标准 + 测试缝） | 标准可测、缝已确认 |
 | 任务拆解 | 本插件 `pp-zcode:to-tickets` | 带阻塞边的工单 | 粒度与依赖经用户确认 |
 | 实施规划 + 编码 | 本插件 `pp-zcode:implement-spec` → `pp-zcode:poteto-mode` + 7 个 playbook | 代码变更 + 工单证据 | 计划与 spec 一致、spec 只读 |
-| 质量审查 + 验证 | 本插件（宿主 glm-reviewer / glm-tester） | 审查与验证证据 | 真实命令输出才算 verified |
-| 最终验收 | 本插件 `pp-zcode:pipeline-accept` | 逐项验收报告 | 每条标准 pass / fail / unverified |
+| 质量审查 + 验证 | 本插件 `pp-zcode:code-review`（评审员 glm-reviewer）+ glm-tester 验证 | 审查与验证证据 | 真实命令输出才算 verified |
+| 最终验收 | 本插件 `pp-zcode:pipeline-accept` | 逐项验收报告 | 每条标准 pass / fail / unverified，外加 code → spec 补扫 |
 
 三条铁律：
 
 1. **Pocock 定标准和拆任务，poteto-mode 只定执行顺序与技术方案。** 执行阶段发现需求级问题，带着点名的问题退回 spec 阶段，绝不悄悄改 spec 或工单。
-2. **审查只做一次。** 规格完整性在 spec 阶段由用户把关；代码正确性在执行阶段由独立审查把关。不加重复的全量 review。
+2. **审查只做一次。** 规格完整性在 spec 阶段由用户把关；代码正确性在执行阶段由独立审查（`pp-zcode:code-review`）把关，验收阶段只补一次 code → spec 方向的范围检查。不加重复的全量 review。
 3. **完成必须有证据。** 工单 `verified` 只认本会话内真实运行过的命令输出；环境跑不了的记 `unverified: <需要什么>`，绝不默认通过。
 
 ## 插件内容
@@ -53,6 +53,7 @@ plugins/pp-zcode/
     ├── triage/                       问题与外PR 的分诊状态机，产出 agent brief
     ├── tdd/                          red-green-refactor 参考 + bug 修复回归循环
     ├── codebase-design/              深模块设计的共享词汇
+    ├── code-review/                  Pocock 双轴 diff 评审：repo 规范 + smell 基线；spec 保真（含范围蔓延）
     ├── implement-spec/               ★ 桥接：从 tracker 取 spec/工单，构建交接简报，交给引擎
     │   └── references/               交接简报模板、目标项目 AGENTS.md 片段
     ├── poteto-mode/                  执行引擎（pstack poteto-mode 的 zcode 移植版）
@@ -88,9 +89,9 @@ plugins/pp-zcode/
 
 插件图标在仓库根的 `assets/icon.png`（512×512，SVG 源文件同目录）。ZCode 的市场卡片按 HTTPS URL 加载图标，`marketplace.json` 的 `icon` 指向本仓库该文件的 raw 地址；仓库为私有时 raw 地址不可匿名读取，卡片会退回默认图标。
 
-移植方式沿用 pstack 官方的适配层做法：上游技能**原样保留**，所有 Cursor 专有名称（Task、模型 slug、cloud agent、Bugbot 等）集中在 `poteto-mode` 的 Harness adapter 一张表里映射到 zcode 的对应物（`Agent`、宿主的 glm-coder / glm-reviewer / glm-tester 等专项 agent、`gh`、browser-use 技能）。未随插件携带的上游技能（`figure-it-out`、babysit、orchestrate 等）在 Substitutions 表里给了明确的替代行为，不靠猜。`interrogate` 随插件打包，替代原先"spawn 一个 glm-reviewer"的单点替代。
+移植方式沿用 pstack 官方的适配层做法：上游技能**原样保留**，所有 Cursor 专有名称（Task、模型 slug、cloud agent、Bugbot 等）集中在 `poteto-mode` 的 Harness adapter 一张表里映射到 zcode 的对应物（`Agent`、宿主的 glm-coder / glm-reviewer / glm-tester 等专项 agent、`gh`、browser-use 技能）。未随插件携带的上游技能（`figure-it-out`、babysit、orchestrate 等）在 Substitutions 表里给了明确的替代行为，不靠猜。常规评审由 Pocock 的 `code-review` 承担（评审员是 glm-reviewer），`interrogate` 是争议时的多模型对抗升级。
 
-Pocock 技能按上游原文打包，只做了一处机械改动：技能之间的调用与指引改成 `pp-zcode:<name>` 限定名。唯一的内容融合在 `tdd`：保留 Pocock 的测试方法论，并并入 pstack 的 bug 修复循环、跳过规则与证据报告。
+Pocock 技能按上游原文打包，机械改动只有一处：技能之间的调用与指引改成 `pp-zcode:<name>` 限定名。两个例外：`code-review` 的子代理机制映射到宿主 `Agent` 工具、issue 查询指向 tracker 工作流，并接线进执行与验收两侧；`tdd` 做了内容融合——保留 Pocock 的测试方法论，并入 pstack 的 bug 修复循环、跳过规则与证据报告。
 
 ## 模型角色
 
@@ -117,7 +118,7 @@ Unity 工程没有通用的命令行测试套件，照搬 `/pp-zcode:tdd` 的 re
 - 目标项目先跑一次 `/pp-zcode:setup-matt-pocock-skills` 配置 issue tracker。
 - Unity 项目再跑一次 `/pp-zcode:unity-development-setup` 生成验证矩阵。
 
-Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装用户级副本；即使本机装了同名技能，限定名调用也不会受遮蔽影响。
+Matt Pocock 的技能（需求侧 + `code-review`）已随插件打包，**不需要**再单独安装用户级副本；即使本机装了同名技能，限定名调用也不会受遮蔽影响。
 
 ## 安装
 
@@ -139,6 +140,7 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 /pp-zcode:poteto-mode 修复登录超时              # 小活直接进引擎，按任务形状选 playbook
 /pp-zcode:pipeline-accept                      # spec 背书的活执行完后逐条验收
 /pp-zcode:pipeline-status 购物车                # 只读查询：进度在哪、下一步归谁
+/pp-zcode:code-review main                     # 常规评审：自 main 以来的 diff，规范轴 + spec 轴并行
 /pp-zcode:interrogate                          # 对抗评审：按配置的模型面板逐一向当前变更开火
 /pp-zcode:setup-models                         # 配置各席位模型与推理档位（可选，默认全跟随会话模型）
 /pp-zcode:unity-development-setup              # Unity 工程首次适配：写验证矩阵与 agent 声明
@@ -156,7 +158,8 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 | spec 太大，要拆成可独立验证的工单 | `/pp-zcode:to-tickets` | 纵切工单 + 阻塞边，粒度经你确认 |
 | spec（和工单）就绪，开始实现 | `/pp-zcode:implement-spec` | 从 tracker 取件 → 构建交接简报 → `poteto-mode` 按工单或按 spec 整体执行，证据纪律全程生效 |
 | 小活直接改代码，不值得出 spec | `/pp-zcode:poteto-mode` | 执行引擎按任务形状自动选 playbook（见下表） |
-| 工单全部 verified，要最终验收 | `/pp-zcode:pipeline-accept` | 逐条验收标准对证据，输出 pass / fail / unverified 报告 |
+| 一段改动写完了，要评审（branch、PR、自某点以来的 diff） | `/pp-zcode:code-review <固定点>` | 双轴并行：repo 规范 + Fowler smell 基线；spec 轴对照工单/spec 查缺失、做错与范围蔓延 |
+| 工单全部 verified，要最终验收 | `/pp-zcode:pipeline-accept` | 逐条验收标准对证据，输出 pass / fail / unverified 报告，附 code → spec 补扫 |
 | 只想看进度，不动任何东西 | `/pp-zcode:pipeline-status <feature>` | 只读报告：阶段判定、工单表、下一个能动的工单、下一步归谁 |
 | 新 issue 或外部 PR 要归类、补信息、写 agent brief | `/pp-zcode:triage` | 按五类 triage 角色推进状态机，必要时先 grill，再产出可执行的 brief |
 | 想换某个席位的模型、或让评审跨模型家族 | `/pp-zcode:setup-models` | 检测可用模型 → 选预算档位 → 写角色表并按需生成预设 agent |
@@ -188,6 +191,7 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 | 动手前先定类型、签名、模块结构 | `/pp-zcode:architect` |
 | 并行覆盖、竞速、矩阵式探索 | `/pp-zcode:swarm` |
 | 多个方案同题比稿，选底座再嫁接 losers 的强项 | `/pp-zcode:arena` |
+| 常规评审一段 diff：规范 + smell 基线 + spec 保真 | `/pp-zcode:code-review` |
 | 对抗评审：多模型独立挑刺，合成一个裁决 | `/pp-zcode:interrogate` |
 | 配置执行侧各席位的模型与推理档位 | `/pp-zcode:setup-models` |
 | 把一段东西真正讲明白（how + why 合成） | `/pp-zcode:teach` |
@@ -210,7 +214,8 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 
 | 情况 | 路由 |
 | --- | --- |
-| 审查或验证失败 | 重开对应工单，回到 poteto-mode 修 |
+| 评审（`pp-zcode:code-review` / interrogate）或验证失败 | 重开对应工单，回到 poteto-mode 修 |
+| 验收补扫发现范围蔓延 | 回 poteto-mode 删除或说明保留理由；确属需求的先回 spec 阶段，增量重新出票 |
 | 执行中发现 spec 本身有错（标准不可满足、漏了 case） | 停止执行，点名问题退回 spec 阶段，只对增量重新出票 |
 | 交付后用户报缺陷 | spec 没错 → 重开工单回执行；需求错了 → 改 spec，增量重新出票 |
 | 环境跑不了的验证 | 记 `unverified: <需要什么人工步骤或设备>`，绝不算完成 |
@@ -221,7 +226,8 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 
 ## 实施路线
 
-- **v0.8（当前）**：对齐 pstack-zcode v0.15.28。修正 `why`、`bug-fix`、`shipping`、`opening-a-pr` 里会在 zcode 下失效的 Cursor 机制；`no-comments` 改走插件自带 `comment-sicko` agent（缺失时回落 `general-purpose`）。新增上游技能 `show-me-your-work`、`blast-radius`、`correct`、`teach`、`typescript-best-practices`、`reflect`、`recall`、`create-verification-skill`、`maintain-verification-skill`、`create-formal-verification-skill`、`maintain-formal-verification-skill`，以及 `session-pickup` / `pause-safely` 两个 playbook；`setup-models` 增加 reflect 角色行。
+- **v0.9（当前）**：收编 Pocock 上游 `code-review` 为 `pp-zcode:code-review`（双轴：repo 规范 + Fowler smell 基线、spec 保真）。`poteto-mode` 的独立评审改走该协议，`pipeline-accept` 验收门新增 code → spec 补扫抓范围蔓延，`ask` 增加路由。
+- **v0.8**：对齐 pstack-zcode v0.15.28。修正 `why`、`bug-fix`、`shipping`、`opening-a-pr` 里会在 zcode 下失效的 Cursor 机制；`no-comments` 改走插件自带 `comment-sicko` agent（缺失时回落 `general-purpose`）。新增上游技能 `show-me-your-work`、`blast-radius`、`correct`、`teach`、`typescript-best-practices`、`reflect`、`recall`、`create-verification-skill`、`maintain-verification-skill`、`create-formal-verification-skill`、`maintain-formal-verification-skill`，以及 `session-pickup` / `pause-safely` 两个 playbook；`setup-models` 增加 reflect 角色行。
 - **v0.7**：移植 pstack-zcode 的模型角色机制：新增 `pp-zcode:setup-models`（角色表 + 预算档位 + 预设 agent + workflow 刷新）与 `pp-zcode:interrogate`（多模型对抗评审）；执行侧技能改为读取 `~/.zcode/pp-zcode/models.md`，不再引用 Cursor 规则或写死模型 slug。
 - **v0.6**：新增 `pp-zcode:ask` 技能路由器：按处境把工作导向插件内合适的技能与流程，不引入强制链条。
 - **v0.5**：Pocock 需求侧技能（含 triage）随插件打包，所有技能统一以 `pp-zcode:<name>` 限定名调用与互相引用，避免用户级同名技能遮蔽。

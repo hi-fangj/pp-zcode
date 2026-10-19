@@ -36,6 +36,7 @@ POCOCK_SKILLS = [
     "setup-matt-pocock-skills",
     "tdd",
     "codebase-design",
+    "code-review",
     "triage",
 ]
 POCOCK_USER_INVOKED = [
@@ -46,7 +47,7 @@ POCOCK_USER_INVOKED = [
     "setup-matt-pocock-skills",
     "triage",
 ]
-POCOCK_MODEL_INVOCABLE = ["grilling", "domain-modeling", "tdd", "codebase-design"]
+POCOCK_MODEL_INVOCABLE = ["grilling", "domain-modeling", "tdd", "codebase-design", "code-review"]
 POCOCK_REFERENCE_FILES = {
     "domain-modeling": ["ADR-FORMAT.md", "GLOSSARY-FORMAT.md"],
     "setup-matt-pocock-skills": [
@@ -217,8 +218,9 @@ class TestSkills(unittest.TestCase):
 
 
 class TestBundledPocockSkills(unittest.TestCase):
-    """Matt Pocock's requirements skills ship inside the plugin, so a user-level
-    install of the same name is not required and cannot shadow the qualified name."""
+    """Matt Pocock's requirements and review skills ship inside the plugin, so a
+    user-level install of the same name is not required and cannot shadow the
+    qualified name."""
 
     def test_every_bundled_skill_ships(self):
         for name in POCOCK_SKILLS:
@@ -428,6 +430,19 @@ class TestFusionContent(unittest.TestCase):
         for verdict in ("pass", "fail", "unverified"):
             self.assertIn(verdict, accept, f"pipeline-accept lost its {verdict} verdict")
 
+    def test_review_wiring_is_consistent(self):
+        review = (SKILLS / "code-review" / "SKILL.md").read_text()
+        engine = (SKILLS / "poteto-mode" / "SKILL.md").read_text()
+        accept = (SKILLS / "pipeline-accept" / "SKILL.md").read_text()
+        self.assertIn("pp-zcode:code-review", engine,
+                      "poteto-mode must run the review skill as its independent review")
+        self.assertIn("pp-zcode:code-review", accept,
+                      "pipeline-accept must borrow the review skill's Spec axis")
+        self.assertIn("pp-zcode:poteto-mode", review,
+                      "code-review must name its execution-side caller")
+        self.assertIn("pp-zcode:pipeline-accept", review,
+                      "code-review must name its acceptance-side caller")
+
 
 class TestUnitySkills(unittest.TestCase):
     """The Unity pair mirrors the per-repository setup the local Unity repos
@@ -484,6 +499,7 @@ class TestRouter(unittest.TestCase):
         "pipeline-status",
         "triage",
         "tdd",
+        "code-review",
         "how",
         "why",
         "teach",

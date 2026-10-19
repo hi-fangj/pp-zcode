@@ -30,7 +30,7 @@ Upstream text uses Cursor names. Apply the Harness adapter below once per sessio
 | --- | --- |
 | `subagent_type: poteto-agent` (code-writing delegate) | `glm-coder` for hard changes; `glm-coder-flash` for trivial mechanical edits; otherwise `general-purpose`. |
 | Read-only investigation delegate | `glm-explorer` or `Explore`. It keeps `Bash`, so the brief also says "do not edit files", and you check `git status` afterward. |
-| Code review pass | `glm-reviewer`. |
+| Code review pass | The `pp-zcode:code-review` protocol; `glm-reviewer` is the reviewing agent. |
 | Running tests / builds / lint | `glm-tester`; report only the summary back. |
 | Any of the above missing | `general-purpose` with the same brief. |
 | `environment: "cloud"` | Tell the worker to check out its own worktree or branch first. |
@@ -199,6 +199,6 @@ When a handoff brief is on the table — built by `pp-zcode:implement-spec` or a
 
 1. **Work what the brief hands you.** A ticketed brief names the spec and the ticket set: take the frontier (tickets whose blockers are all verified) in dependency order; serial first — one ticket in flight until the loop is proven, parallel fan-out only when the brief grants it. A ticketless brief names a spec or a request: the whole basis is one unit of work; pick the playbook by shape and drive it to done against the brief's acceptance criteria.
 2. **Record progress where the work lives.** Ticketed: update ticket status as you go — `in-progress` when you start, `in-review` when the implementation stands, `verified` only with evidence — and record on the ticket the exact verification commands and their key output lines. Ticketless: no tracker writes; the hand-back report is the record. What cannot be executed in this environment is recorded as `unverified: <what manual step or device is needed>`, never as done.
-3. **Independent review before done.** A delegate's self-report never marks work verified. Run `glm-reviewer` (or a fresh agent) over the diff, and run the verification through `glm-tester` or your own commands.
+3. **Independent review before done.** A delegate's self-report never marks work verified. Review the diff through `pp-zcode:code-review` — the Standards axis is the rubric, the Spec axis checks the diff against the ticket or brief — with `glm-reviewer` as the reviewing agent, and run the verification through `glm-tester` or your own commands.
 4. **The spec and the brief are read-only.** Never edit the spec, a ticket's acceptance criteria, the blocking edges, or the brief's acceptance criteria during execution. Execution-level problems (wrong approach, broken build) you fix inside the ticket or the unit. Requirement-level doubt (the spec looks wrong, an acceptance criterion cannot be satisfied as written, a missing case) stops the run: hand back the named question, so it goes to the spec stage (`pp-zcode:to-spec`).
 5. **Finish with the hand-back.** Report per ticket or per acceptance criterion: what shipped, the evidence, and anything unverified. A spec-backed run then goes to `pp-zcode:pipeline-accept`; a ticketless run's report is the delivery record.

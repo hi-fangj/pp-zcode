@@ -27,8 +27,8 @@ This is the default path, not a gate. Skip any stage the work does not earn; a s
 1. **Requirements** — `pp-zcode:grill-with-docs` when working in a repo: it keeps what it learns in `GLOSSARY.md` and ADRs. `pp-zcode:grill-me` when there is no repo or no paper trail is wanted. Both run `pp-zcode:grilling`; reach for the primitive directly only when you want the interview with no wrapper around it.
 2. **Spec** — `pp-zcode:to-spec` turns settled decisions into a spec on the tracker, with acceptance criteria and test seams. It synthesizes; it does not reopen the interview.
 3. **Tickets, only when earned** — `pp-zcode:to-tickets` splits a multi-part or cross-cutting spec into tracer-bullet tickets with blocking edges. One coherent feature does not need tickets: a spec without them goes straight to execution.
-4. **Execution** — `pp-zcode:implement-spec` loads the spec (and tickets, when they exist) from the tracker, builds the handoff brief, and hands it to `pp-zcode:poteto-mode`. A task that never earned a spec skips the bridge and goes straight to `pp-zcode:poteto-mode`. The engine selects a playbook by task shape — investigation, bug-fix, feature, refactoring, prototype, shipping, opening-a-pr — and drives `pp-zcode:tdd` for test-first work.
-5. **Acceptance** — `pp-zcode:pipeline-accept` matches every spec and ticket criterion against real evidence and emits pass / fail / unverified. A direct `pp-zcode:poteto-mode` run has no spec to accept against: its hand-back report is the delivery record.
+4. **Execution** — `pp-zcode:implement-spec` loads the spec (and tickets, when they exist) from the tracker, builds the handoff brief, and hands it to `pp-zcode:poteto-mode`. A task that never earned a spec skips the bridge and goes straight to `pp-zcode:poteto-mode`. The engine selects a playbook by task shape — investigation, bug-fix, feature, refactoring, prototype, shipping, opening-a-pr — and drives `pp-zcode:tdd` for test-first work. Each unit's diff is independently reviewed through `pp-zcode:code-review` before it counts as done.
+5. **Acceptance** — `pp-zcode:pipeline-accept` matches every spec and ticket criterion against real evidence, emits pass / fail / unverified, and borrows the Spec axis of `pp-zcode:code-review` to catch unrequested behaviour before declaring completion. A direct `pp-zcode:poteto-mode` run has no spec to accept against: its hand-back report is the delivery record.
 
 Keep the requirement stages (1–3) in one context window so the interview, spec, and tickets build on the same thinking. Start execution from the written brief.
 
@@ -53,6 +53,7 @@ Standalone, reachable at any point:
 - `pp-zcode:architect` — sketch types, signatures, and module boundaries before writing code.
 - `pp-zcode:arena` — run several candidates at one non-trivial task, pick a base, graft the strongest parts.
 - `pp-zcode:swarm` — fan out parallel workers and return one report.
+- `pp-zcode:code-review` — routine two-axis diff review: repo standards plus a Fowler smell baseline, and spec fidelity including scope creep. The default review pass; `pp-zcode:interrogate` is the adversarial escalation when findings are contested.
 - `pp-zcode:interrogate` — adversarial review from one reviewer per configured model, synthesized into one verdict.
 - `pp-zcode:technical-writing` — docs, RFCs, READMEs, PR descriptions, commit messages.
 - `pp-zcode:unslop` — cut AI tells from any prose.

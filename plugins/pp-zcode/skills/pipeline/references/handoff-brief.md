@@ -1,6 +1,6 @@
-# Handoff brief: tickets → poteto-mode
+# Handoff brief: tickets → pipeline-execute
 
-Fill this in and hand it to the `pp-zcode:poteto-mode` skill. It is the only channel between the requirements half and the execution half. Everything poteto-mode may know about the work must be in here; everything in here must trace to the spec or the project's rules.
+Fill this in and hand it to the `pp-zcode:pipeline-execute` skill. It is the only channel between the requirements half and the execution half. Everything pipeline-execute may know about the work must be in here; everything in here must trace to the spec or the project's rules.
 
 ```text
 ## Work

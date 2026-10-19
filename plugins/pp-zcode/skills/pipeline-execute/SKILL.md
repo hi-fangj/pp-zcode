@@ -1,10 +1,10 @@
 ---
-name: poteto-mode
-description: "pp-zcode's execution engine: the zcode port of pstack poteto-mode. Concise, detailed responses, deliberate subagents, unslopped prose, simple code, and verified work. Owns the 'how it's built and proven' half of the pp pipeline. Use for /poteto-mode, execution of approved tickets, or any change task routed here by the pp skill."
+name: pipeline-execute
+description: "pp-zcode's execution engine: the zcode port of pstack poteto-mode, exposed here as pipeline-execute. Concise, detailed responses, deliberate subagents, unslopped prose, simple code, and verified work. Owns the 'how it's built and proven' half of the pipeline. Use for /pipeline-execute, execution of approved tickets, or any change task routed here by the pipeline skill."
 disable-model-invocation: true
 ---
 
-# Poteto mode (zcode port)
+# Pipeline execute (poteto-mode port)
 
 This is the zcode port of [pstack](https://github.com/cursor/plugins/tree/main/pstack) `poteto-mode` by Lauren Tan (MIT). Skills bundled in this plugin live at `../<name>/SKILL.md` relative to this file. Resolve this file's absolute path first (the skill loader names its base directory); every subagent brief you write carries that path.
 
@@ -41,7 +41,7 @@ Upstream text uses Cursor names. Apply the Harness adapter below once per sessio
 Paste this block into every code-writing delegate spawn, above the task-specific scope. It replaces upstream's `poteto-agent` reading this file:
 
 ```text
-You are a delegate inside a poteto-mode run. The parent chat owns the playbook,
+You are a delegate inside a pipeline-execute run. The parent chat owns the playbook,
 the todo list, and every spawn. You own only the scope below.
 
 - Comments: keep only a non-obvious why the code cannot show. No phase-narrating
@@ -61,8 +61,8 @@ the todo list, and every spawn. You own only the scope below.
 | --- | --- |
 | The **tdd** skill | Use the session's `tdd` skill when present (Pocock's), else apply red-green-refactor directly: failing test at the spec's seam, then the change, then the full check. |
 | `interrogate` (contested design) | Spawn a fresh `glm-reviewer` on the same design question and compare verdicts; agreement is high-signal. Still contested → put the fork to the user. |
-| `figure-it-out` (bespoke playbook for large work) | Hand back to the **pp** skill: large or cross-cutting work gets split at the ticket stage, not improvised here. |
-| `show-me-your-work` (decision trail) | The pipeline's decision trail lives in the ticket files and the pp-accept report. |
+| `figure-it-out` (bespoke playbook for large work) | Hand back to the **pipeline** skill: large or cross-cutting work gets split at the ticket stage, not improvised here. |
+| `show-me-your-work` (decision trail) | The pipeline's decision trail lives in the ticket files and the pipeline-accept report. |
 | `babysit` playbook and `scripts/watch-pr` | Use `gh pr checks --watch <pr>` and `gh pr view` in a loop. |
 | `deslop` from cursor-team-kit | The bundled **unslop** and **no-comments** skills cover it. |
 | `control-ui` / `control-cli` | Web UI: the `browser-use` plugin skills (`web-gui-tester`, `control-browser`) when installed. CLI: run it directly. Otherwise skip with a line. |
@@ -88,7 +88,7 @@ Remaining triggers:
 - Running a benchmark, measuring perf yourself, or reporting a speedup or regression you measured → the **benchmark-checklist** skill before you report or act on the number.
 - Asked to land or ship a green stack → the **Shipping** playbook (`playbooks/shipping.md`). Green is not safe. Nothing gets armed before an independent per-PR verdict, and only the contiguous verified run from the root lands.
 - Broken skill mid-task → fix it in its own PR. Don't block. Don't silently work around it.
-- Long, autonomous, or multi-phase work → the decision trail lives in the ticket files and the pp-accept report (see Substitutions).
+- Long, autonomous, or multi-phase work → the decision trail lives in the ticket files and the pipeline-accept report (see Substitutions).
 
 ## Principles
 
@@ -181,14 +181,14 @@ Open a todolist whose first items are the matched playbook's steps, copied in ve
 - **Shipping.** Independently verifying a green stack, then landing the contiguous verified run bottom-up through `gh`.
 - **Opening a PR.** Invoked at the end of every other playbook.
 
-No bundled playbook fits (perf hunt, eval, visual parity, forensics)? Route by shape: read-only question → **Investigation**; any change → **Feature** or **Bug fix**; decision to settle → **Prototype**. Large or cross-cutting work (a migration across many call sites, a multi-part program) does not improvise here: hand back to the **pp** skill so the work is split at the ticket stage.
+No bundled playbook fits (perf hunt, eval, visual parity, forensics)? Route by shape: read-only question → **Investigation**; any change → **Feature** or **Bug fix**; decision to settle → **Prototype**. Large or cross-cutting work (a migration across many call sites, a multi-part program) does not improvise here: hand back to the **pipeline** skill so the work is split at the ticket stage.
 
 ## Pipeline integration
 
-When the **pp** skill hands you a brief, the pipeline contract holds on top of everything above:
+When the **pipeline** skill hands you a brief, the pipeline contract holds on top of everything above:
 
 1. **Work ticket by ticket.** The brief names the spec and the ticket set. Take the frontier (tickets whose blockers are all verified) in dependency order. Serial first: one ticket in flight until the loop is proven, parallel fan-out only when the brief grants it.
 2. **Update ticket status as you go**: `in-progress` when you start, `in-review` when the implementation stands, `verified` only with evidence. Record on the ticket the exact verification commands and their key output lines. What cannot be executed in this environment is recorded as `unverified: <what manual step or device is needed>`, never as done.
 3. **Independent review before verified.** A delegate's self-report never marks a ticket verified. Run `glm-reviewer` (or a fresh agent) over the diff, and run the verification through `glm-tester` or your own commands.
-4. **The spec is read-only.** Never edit the spec, a ticket's acceptance criteria, or the blocking edges during execution. Execution-level problems (wrong approach, broken build) you fix inside the ticket. Requirement-level doubt (the spec looks wrong, an acceptance criterion cannot be satisfied as written, a missing case) stops the run: hand back to **pp** with the named question, and pp routes it to the spec stage.
-5. **Finish with the hand-back.** All tickets verified or explicitly blocked, report per ticket: what shipped, the evidence, and anything unverified. The **pp** skill then runs acceptance.
+4. **The spec is read-only.** Never edit the spec, a ticket's acceptance criteria, or the blocking edges during execution. Execution-level problems (wrong approach, broken build) you fix inside the ticket. Requirement-level doubt (the spec looks wrong, an acceptance criterion cannot be satisfied as written, a missing case) stops the run: hand back to **pipeline** with the named question, and pipeline routes it to the spec stage.
+5. **Finish with the hand-back.** All tickets verified or explicitly blocked, report per ticket: what shipped, the evidence, and anything unverified. The **pipeline** skill then runs acceptance.

@@ -8,7 +8,8 @@ licensed MIT. Upstream version at the time of porting: 0.15.28.
 
 **Adapted (rewritten for zcode):**
 
-- `skills/poteto-mode/SKILL.md` — upstream `skills/poteto-mode/SKILL.md` with
+- `skills/pipeline-execute/SKILL.md` (directory renamed from `poteto-mode` when the
+  plugin's own skills took `pipeline-*` names) — upstream `skills/poteto-mode/SKILL.md` with
   the Harness adapter and Substitutions tables added (modeled on upstream's own
   `docs/harness/claude-code.md` porting approach), the playbook index pruned to
   the bundled set, model-selection sections replaced by host agent mapping, and
@@ -16,19 +17,23 @@ licensed MIT. Upstream version at the time of porting: 0.15.28.
 
 **Vendored verbatim:**
 
-- `skills/principle-*/SKILL.md` (23 skills)
+- `skills/principle-*/SKILL.md` (24 skills)
 - `skills/how/`, `skills/why/`, `skills/architect/`, `skills/swarm/`,
   `skills/arena/`, `skills/unslop/`, `skills/technical-writing/`,
   `skills/benchmark-checklist/`
 - `skills/no-comments/SKILL.md`; its `references/comment-sicko.md` is upstream
   `agents/comment-sicko.md`, relocated because zcode plugins ship no agents
   directory.
-- `skills/poteto-mode/playbooks/{investigation,bug-fix,feature,refactoring,prototype,shipping,opening-a-pr}.md`
+- `skills/pipeline-execute/playbooks/{investigation,bug-fix,feature,refactoring,prototype,shipping,opening-a-pr}.md`
 
 Cursor-specific names inside vendored files are resolved by the Harness adapter
-in `skills/poteto-mode/SKILL.md`, not by editing the upstream text.
+in `skills/pipeline-execute/SKILL.md`, not by editing the upstream text. The one
+upstream edit made anyway is mechanical: the vendored `how`, `why`, `arena`,
+`swarm`, and `no-comments` skills reference the bundled execution skill by its
+new name (`poteto-mode` → `pipeline-execute`).
 
-**Original to this plugin:** `skills/pp/`, `skills/pp-accept/`.
+**Original to this plugin:** `skills/pipeline/`, `skills/pipeline-accept/`,
+`skills/pipeline-status/`.
 
 ## Matt Pocock's skills
 

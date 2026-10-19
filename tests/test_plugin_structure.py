@@ -1,7 +1,7 @@
 """Structural tests for the pp-zcode plugin.
 
 The repo ships no runtime code; the plugin IS a set of markdown skills plus
-manifests. These tests pin the invariants the zcode loader and the pp pipeline
+manifests. These tests pin the invariants the zcode loader and the pipeline
 depend on, so an edit that breaks naming, frontmatter, or referenced files
 fails before it is pushed.
 
@@ -17,7 +17,7 @@ REPO = Path(__file__).resolve().parent.parent
 PLUGIN = REPO / "plugins" / "pp-zcode"
 SKILLS = PLUGIN / "skills"
 
-FUSION_SKILLS = ["pp", "pp-accept", "poteto-mode"]
+FUSION_SKILLS = ["pipeline", "pipeline-accept", "pipeline-execute"]
 PLAYBOOKS = [
     "investigation",
     "bug-fix",
@@ -119,19 +119,19 @@ class TestSkills(unittest.TestCase):
 
 class TestReferences(unittest.TestCase):
     def test_referenced_playbooks_exist(self):
-        poteto = (SKILLS / "poteto-mode" / "SKILL.md").read_text()
-        for ref in set(re.findall(r"playbooks/([a-z-]+)\.md", poteto)):
-            self.assertTrue((SKILLS / "poteto-mode" / "playbooks" / f"{ref}.md").is_file(),
-                            f"poteto-mode references missing playbook {ref}")
+        execute = (SKILLS / "pipeline-execute" / "SKILL.md").read_text()
+        for ref in set(re.findall(r"playbooks/([a-z-]+)\.md", execute)):
+            self.assertTrue((SKILLS / "pipeline-execute" / "playbooks" / f"{ref}.md").is_file(),
+                            f"pipeline-execute references missing playbook {ref}")
 
     def test_expected_playbooks_shipped(self):
         for pb in PLAYBOOKS:
-            self.assertTrue((SKILLS / "poteto-mode" / "playbooks" / f"{pb}.md").is_file(),
+            self.assertTrue((SKILLS / "pipeline-execute" / "playbooks" / f"{pb}.md").is_file(),
                             f"playbook {pb} went missing")
 
-    def test_pp_reference_files_exist(self):
+    def test_pipeline_reference_files_exist(self):
         for ref in ("handoff-brief.md", "target-agents-snippet.md"):
-            self.assertTrue((SKILLS / "pp" / "references" / ref).is_file())
+            self.assertTrue((SKILLS / "pipeline" / "references" / ref).is_file())
 
     def test_comment_sicko_brief_vendored(self):
         brief = SKILLS / "no-comments" / "references" / "comment-sicko.md"
@@ -148,24 +148,24 @@ class TestFusionContent(unittest.TestCase):
             self.assertNotIn("{{", text, f"{name} contains an unresolved placeholder")
 
     def test_pipeline_gate_names_are_consistent(self):
-        pp = (SKILLS / "pp" / "SKILL.md").read_text()
-        accept = (SKILLS / "pp-accept" / "SKILL.md").read_text()
-        for stage in ("grilling", "to-spec", "to-tickets", "poteto-mode"):
-            self.assertIn(stage, pp, f"pp router lost its {stage} stage")
+        router = (SKILLS / "pipeline" / "SKILL.md").read_text()
+        accept = (SKILLS / "pipeline-accept" / "SKILL.md").read_text()
+        for stage in ("grilling", "to-spec", "to-tickets", "pipeline-execute"):
+            self.assertIn(stage, router, f"pipeline router lost its {stage} stage")
         for verdict in ("pass", "fail", "unverified"):
-            self.assertIn(verdict, accept, f"pp-accept lost its {verdict} verdict")
+            self.assertIn(verdict, accept, f"pipeline-accept lost its {verdict} verdict")
 
 
-class TestPPStatus(unittest.TestCase):
-    def test_mirrors_pp_stage_names(self):
-        status = (SKILLS / "pp-status" / "SKILL.md").read_text()
-        for stage in ("grilling", "to-spec", "to-tickets", "poteto-mode", "pp-accept"):
-            self.assertIn(stage, status, f"pp-status lost its {stage} stage")
+class TestPipelineStatus(unittest.TestCase):
+    def test_mirrors_pipeline_stage_names(self):
+        status = (SKILLS / "pipeline-status" / "SKILL.md").read_text()
+        for stage in ("grilling", "to-spec", "to-tickets", "pipeline-execute", "pipeline-accept"):
+            self.assertIn(stage, status, f"pipeline-status lost its {stage} stage")
 
     def test_stays_model_invocable(self):
-        fm = frontmatter(SKILLS / "pp-status" / "SKILL.md")
+        fm = frontmatter(SKILLS / "pipeline-status" / "SKILL.md")
         self.assertNotIn("disable-model-invocation", fm,
-                         "pp-status must stay model-invocable")
+                         "pipeline-status must stay model-invocable")
 
 
 if __name__ == "__main__":

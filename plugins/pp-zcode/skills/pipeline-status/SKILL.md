@@ -1,16 +1,16 @@
 ---
-name: pp-status
-description: "Read-only pp pipeline status. Answer 'where does feature X stand' from the tracker: phase verdict with basis, ticket state table, first ticket that can move, and the next skill owner. With no reference, list open features one line each. Never writes to the tracker, never judges quality."
+name: pipeline-status
+description: "Read-only pipeline status. Answer 'where does feature X stand' from the tracker: phase verdict with basis, ticket state table, first ticket that can move, and the next skill owner. With no reference, list open features one line each. Never writes to the tracker, never judges quality."
 ---
 
-# PP Status: where the pipeline stands, never what it is worth
+# Pipeline Status: where the pipeline stands, never what it is worth
 
-Status answers one question: where does a feature sit in the pp pipeline, and who owns the next move. It reads the tracker and reports. It never advances the work.
+Status answers one question: where does a feature sit in the pipeline, and who owns the next move. It reads the tracker and reports. It never advances the work.
 
 ## Contract
 
 - **Zero writes.** Never add or remove labels, never comment on an issue, never close or edit one. Every tracker call in this skill is a read.
-- **No quality judgment.** Whether the work is good belongs to `grilling` and `pp-accept`. Status reports state and evidence, not opinions.
+- **No quality judgment.** Whether the work is good belongs to `grilling` and `pipeline-accept`. Status reports state and evidence, not opinions.
 - Reply in the language of the conversation.
 
 ## Prerequisite
@@ -38,13 +38,13 @@ The mapping is mechanical, derived only from tracker state:
 | --- | --- | --- |
 | No spec matches the reference | no spec found | none — name what was searched; never guess |
 | Spec open, no tickets yet | ticketing | `to-tickets` |
-| Spec open, one or more open tickets | execution | `poteto-mode` |
-| All tickets closed, or the only open tickets are explicitly `unverified` with a reason, spec still open | acceptance | `pp-accept` |
+| Spec open, one or more open tickets | execution | `pipeline-execute` |
+| All tickets closed, or the only open tickets are explicitly `unverified` with a reason, spec still open | acceptance | `pipeline-accept` |
 | Spec issue closed | delivered | none |
 
 `grilling`-phase work leaves no tracker footprint, so it cannot appear in the table above; that is expected, not missing data.
 
-This table mirrors the phase table in the `pp` skill: `grilling` → `to-spec` → `to-tickets` → `poteto-mode` → `pp-accept`. `pp` is the source of truth; if they diverge, `pp` wins.
+This table mirrors the phase table in the `pipeline` skill: `grilling` → `to-spec` → `to-tickets` → `pipeline-execute` → `pipeline-accept`. `pipeline` is the source of truth; if they diverge, `pipeline` wins.
 
 ## Reading ticket state
 

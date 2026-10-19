@@ -1,10 +1,10 @@
 ---
-name: pp-accept
-description: "Final acceptance gate of the pp pipeline: walk every acceptance criterion in the spec and each ticket, match it against real evidence (re-run verification commands, read build and test output, inspect the diff), and emit a per-criterion pass / fail / unverified report with routing. Use when the pipeline reaches acceptance, or for 'accept this against the spec' / '验收'."
+name: pipeline-accept
+description: "Final acceptance gate of the pipeline: walk every acceptance criterion in the spec and each ticket, match it against real evidence (re-run verification commands, read build and test output, inspect the diff), and emit a per-criterion pass / fail / unverified report with routing. Use when the pipeline reaches acceptance, or for 'accept this against the spec' / '验收'."
 disable-model-invocation: true
 ---
 
-# PP Accept: the spec is the only judge
+# Pipeline Accept: the spec is the only judge
 
 Acceptance compares the delivered work against the spec's acceptance criteria and each ticket's criteria, one by one, with evidence. It does not re-review code style (that was Phase 3's independent review), and it does not discover new requirements.
 
@@ -42,7 +42,7 @@ Routing: <one sentence per fail or unverified row>
 
 ### 4. Route by the failure's home
 
-- A `fail` whose criterion is right → reopen the named ticket: back to poteto-mode execution with the failing evidence attached. Execution bugs do not touch the spec.
+- A `fail` whose criterion is right → reopen the named ticket: back to pipeline-execute execution with the failing evidence attached. Execution bugs do not touch the spec.
 - A `fail` or `unverified` that reveals the criterion itself is wrong, missing, or untestable → back to `to-spec` with the named question; re-ticket only the delta afterward.
 - All rows `pass` → the pipeline is complete. Update ticket states to their final values and say so plainly.
 

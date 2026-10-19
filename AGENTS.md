@@ -16,7 +16,7 @@ Single-context: one `GLOSSARY.md` + `docs/adr/` at the repo root. See `docs/agen
 
 ## Pipeline
 
-Work runs through the pp pipeline: grilling → spec → tickets → execution → acceptance.
+Work runs through the pipeline: grilling → spec → tickets → execution → acceptance.
 Specs and tickets live on the tracker configured in docs/agents/issue-tracker.md.
 
 ## Commands
@@ -36,7 +36,7 @@ session that claims it. What this environment cannot run is recorded as
 
 - Root `marketplace.json` is the only catalog; its version must match `plugins/pp-zcode/.zcode-plugin/plugin.json`.
 - A skill directory's name must match its `SKILL.md` frontmatter `name`, and every skill needs a description.
-- `pp`, `pp-accept`, `poteto-mode` stay user-invoked (`disable-model-invocation: true`).
+- `pipeline`, `pipeline-accept`, `pipeline-execute` stay user-invoked (`disable-model-invocation: true`).
 - Fusion skills ship no unresolved `{{ }}` placeholders.
 
 ## Manual acceptance items

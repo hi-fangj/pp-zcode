@@ -16,7 +16,7 @@ Infer the repo from `git remote -v`; `gh` does this automatically when run insid
 
 ## Pipeline ticket states
 
-The pp pipeline drives a ticket issue through workflow labels. Exactly one workflow label is present at any time; adding a workflow label removes `ready-for-agent`.
+The pipeline drives a ticket issue through workflow labels. Exactly one workflow label is present at any time; adding a workflow label removes `ready-for-agent`.
 
 | State | Representation |
 | --- | --- |
@@ -29,7 +29,7 @@ The pp pipeline drives a ticket issue through workflow labels. Exactly one workf
 
 Feature lifecycle on the tracker:
 
-- A spec issue with all ticket sub-issues closed, or whose only remaining open sub-issues are explicitly `unverified` with a reason, sits in acceptance; its next owner is `pp-accept`.
+- A spec issue with all ticket sub-issues closed, or whose only remaining open sub-issues are explicitly `unverified` with a reason, sits in acceptance; its next owner is `pipeline-accept`.
 - Closing the spec issue after acceptance marks the feature delivered. Delivered features no longer appear in status listings.
 
 ## Pull requests as a triage surface

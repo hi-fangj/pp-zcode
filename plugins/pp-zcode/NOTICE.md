@@ -40,7 +40,10 @@ cannot shadow the bundled copy, and every model-role lookup reads
 **Original to this plugin:** `skills/ask/`, `skills/implement-spec/`,
 `skills/pipeline-accept/`, `skills/pipeline-status/`, `skills/setup-models/`
 (the zcode model-role data file and preset-agent scheme, after
-[pstack-zcode](https://github.com/ChHsiching/pstack-zcode)'s `setup-pstack`).
+[pstack-zcode](https://github.com/ChHsiching/pstack-zcode)'s `setup-pstack`),
+and `skills/unity-development/` + `skills/unity-development-setup/` (adapted from
+the per-repository Unity workflow used by this machine's Unity projects; no
+upstream text is vendored).
 
 ## Matt Pocock's skills
 

@@ -71,6 +71,8 @@ the todo list, and every spawn. You own only the scope below.
 | Cursor `/loop` | Re-invoke the step or poll the background task with `TaskOutput`. |
 | Bugbot, Cursor cloud agents, Automations, built-in PR tool | Skip with one line `Skipped in zcode: <step>. <reason>.` and continue. Use `gh` for PR operations. |
 
+**Unity repositories.** When the repository declares `pp-zcode:unity-development` in its agent instructions, or has `docs/agents/unity-development.md`, load `pp-zcode:unity-development` before choosing a feedback loop. Its compiler/EditMode/PlayMode evidence matrix and its optional-test-first rule override the generic TDD assumption in every playbook. If the repository is Unity but that document is missing, say so and offer `pp-zcode:unity-development-setup`; do not invent commands.
+
 ## Non-negotiables
 
 The Principles section below grounds every trigger. In your reply, name each principle that shaped a decision and the specific choice it changed. Cite only principles whose leaf SKILL.md you read this session.

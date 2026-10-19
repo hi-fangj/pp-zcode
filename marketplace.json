@@ -4,7 +4,7 @@
     {
       "name": "pp-zcode",
       "source": "./plugins/pp-zcode",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "description": "Pocock × PStack in one plugin: Matt Pocock's requirements skills ship bundled, implement-spec bridges a spec or ticket set to the poteto-mode execution engine (a zcode port of pstack), pipeline-accept gates delivery on evidence, and interrogate runs a multi-model adversarial review panel. Model roles are configured per host in ~/.zcode/pp-zcode/models.md. Invoke every skill by its qualified pp-zcode:<name> so a user-level install of the same skill cannot shadow it.",
       "displayName": "PP · Pocock × PStack",
       "displayName_i18n": {

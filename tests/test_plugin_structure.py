@@ -25,6 +25,7 @@ FUSION_SKILLS = [
     "interrogate",
     "setup-models",
 ]
+UNITY_SKILLS = ["unity-development", "unity-development-setup"]
 POCOCK_SKILLS = [
     "grilling",
     "grill-me",
@@ -59,7 +60,7 @@ POCOCK_REFERENCE_FILES = {
     "codebase-design": ["DEEPENING.md", "DESIGN-IT-TWICE.md"],
     "triage": ["AGENT-BRIEF.md", "OUT-OF-SCOPE.md"],
 }
-BUNDLED_SKILL_NAMES = sorted(set(FUSION_SKILLS + POCOCK_SKILLS + [
+BUNDLED_SKILL_NAMES = sorted(set(FUSION_SKILLS + POCOCK_SKILLS + UNITY_SKILLS + [
     "pipeline-status",
     "how",
     "why",
@@ -281,7 +282,7 @@ class TestFusionContent(unittest.TestCase):
     """The skills authored for this plugin must not ship template leftovers."""
 
     def test_no_unresolved_placeholders_in_fusion_skills(self):
-        for name in FUSION_SKILLS:
+        for name in FUSION_SKILLS + UNITY_SKILLS:
             text = (SKILLS / name / "SKILL.md").read_text()
             self.assertNotIn("{{", text, f"{name} contains an unresolved placeholder")
 
@@ -295,6 +296,44 @@ class TestFusionContent(unittest.TestCase):
         self.assertIn("Ticketless", engine, "poteto-mode lost its ticketless brief branch")
         for verdict in ("pass", "fail", "unverified"):
             self.assertIn(verdict, accept, f"pipeline-accept lost its {verdict} verdict")
+
+
+class TestUnitySkills(unittest.TestCase):
+    """The Unity pair mirrors the per-repository setup the local Unity repos
+    already use: one execution skill and one setup skill that writes the project
+    validation matrix agents read before a change."""
+
+    def test_execution_skill_ships_its_verification_reference(self):
+        self.assertTrue(
+            (SKILLS / "unity-development" / "references" / "verification.md").is_file(),
+            "unity-development is missing references/verification.md")
+
+    def test_setup_ships_the_project_doc_template(self):
+        self.assertTrue(
+            (SKILLS / "unity-development-setup" / "references" / "unity-development-doc.md").is_file(),
+            "unity-development-setup is missing its doc template")
+
+    def test_execution_skill_is_model_invocable(self):
+        fm = frontmatter(SKILLS / "unity-development" / "SKILL.md")
+        self.assertNotIn("disable-model-invocation", fm,
+                         "unity-development must stay model-invocable")
+
+    def test_setup_stays_user_invoked(self):
+        fm = frontmatter(SKILLS / "unity-development-setup" / "SKILL.md")
+        self.assertEqual(fm.get("disable-model-invocation"), "true",
+                         "unity-development-setup must stay user-invoked")
+
+    def test_setup_writes_the_documented_contract(self):
+        setup = (SKILLS / "unity-development-setup" / "SKILL.md").read_text()
+        self.assertIn("docs/agents/unity-development.md", setup,
+                      "setup must write the project verification matrix")
+        self.assertIn("### Unity development", setup,
+                      "setup must declare the Unity development agent block")
+
+    def test_engine_routes_unity_repositories_to_the_skill(self):
+        engine = (SKILLS / "poteto-mode" / "SKILL.md").read_text()
+        self.assertIn("pp-zcode:unity-development", engine,
+                      "poteto-mode must load the Unity skill for Unity repositories")
 
 
 class TestRouter(unittest.TestCase):
@@ -328,6 +367,8 @@ class TestRouter(unittest.TestCase):
         "codebase-design",
         "setup-matt-pocock-skills",
         "setup-models",
+        "unity-development",
+        "unity-development-setup",
     ]
 
     def test_names_every_routable_skill(self):

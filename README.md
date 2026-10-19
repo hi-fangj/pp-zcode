@@ -62,6 +62,10 @@ plugins/pp-zcode/
     ├── interrogate/                  ★ 对抗评审：按配置的模型面板逐一向变更开火，合成一个裁决
     │   └── references/               评审提示词、评分表、代码质量视角、主审判断框架
     ├── setup-models/                 ★ 模型角色配置：写 ~/.zcode/pp-zcode/models.md，生成预设 agent
+    ├── unity-development/            Unity 执行参考：按层选编译 / EditMode / PlayMode / 手动证据
+    │   └── references/               证据矩阵、test-first 准入条件、命令层级
+    ├── unity-development-setup/      Unity 项目一次性适配：探测工程结构，写验证矩阵与 agent 声明
+    │   └── references/               docs/agents/unity-development.md 模板
     ├── unslop / no-comments / technical-writing / benchmark-checklist
     └── principle-*/（24 个）          pstack 原则微技能
 ```
@@ -81,11 +85,21 @@ Pocock 技能按上游原文打包，只做了一处机械改动：技能之间�
 - **刷新已保存 workflow**：`setup-models` 会检测 `~/.zcode/workflows/pp-zcode-*.dwf.ts` 里钉住的模型是否与角色表一致，过期就重新生成。
 - **对抗评审**：`/pp-zcode:interrogate` 按 `interrogate reviewers` 行逐一 spawn reviewer。信号来自模型多样性，而不是给每个 reviewer 分配不同人设；主会话按 Act on / Consider / Noted / Dismissed 四档合成裁决。
 
+## Unity 项目
+
+Unity 工程没有通用的命令行测试套件，照搬 `/pp-zcode:tdd` 的 red-green 前置会卡住。插件用一对技能解决：
+
+- **`/pp-zcode:unity-development-setup`**（每个 Unity 工程跑一次）：探测 Unity 版本、asmdef 程序集、生成代码边界、测试 runner、Editor 自动化与高风险链路；写 `docs/agents/unity-development.md`（每个 layer 的最小编译检查 + 行为证据矩阵），并把 `### Unity development` 声明加入 `AGENTS.md` 或 `CLAUDE.md`。
+- **`pp-zcode:unity-development`**（模型可自动加载）：`poteto-mode` 在识别到 Unity 仓库时先加载它。它把 test-first 当作可选反馈环：有确定性 seam 和 runner 才走 red-green，否则用"最小改动 → 编译受影响程序集 → 跑最近的 Unity 行为"的纵切；完成证据必须是实际跑过的编译、EditMode/PlayMode 或明确标注的 `unverified` 手动场景。
+
+仓库已有的 `docs/agents/unity-development.md` 优先于技能的通用矩阵，重跑 setup 只更新文档和声明，不覆盖工程自己的规则。
+
 ## 依赖
 
 - **宿主专项 agent**（glm-coder / glm-coder-flash / glm-explorer / glm-reviewer / glm-tester）：存在则优先使用，缺失时回落到 general-purpose 并内联委派简报。
 - **`gh` CLI**：GitHub tracker 上的 spec、工单、验收证据都通过它读写。
 - 目标项目先跑一次 `/pp-zcode:setup-matt-pocock-skills` 配置 issue tracker。
+- Unity 项目再跑一次 `/pp-zcode:unity-development-setup` 生成验证矩阵。
 
 Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装用户级副本；即使本机装了同名技能，限定名调用也不会受遮蔽影响。
 
@@ -111,6 +125,7 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 /pp-zcode:pipeline-status 购物车                # 只读查询：进度在哪、下一步归谁
 /pp-zcode:interrogate                          # 对抗评审：按配置的模型面板逐一向当前变更开火
 /pp-zcode:setup-models                         # 配置各席位模型与推理档位（可选，默认全跟随会话模型）
+/pp-zcode:unity-development-setup              # Unity 工程首次适配：写验证矩阵与 agent 声明
 ```
 
 ### 场景 → 技能路由
@@ -129,6 +144,8 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 | 只想看进度，不动任何东西 | `/pp-zcode:pipeline-status <feature>` | 只读报告：阶段判定、工单表、下一个能动的工单、下一步归谁 |
 | 新 issue 或外部 PR 要归类、补信息、写 agent brief | `/pp-zcode:triage` | 按五类 triage 角色推进状态机，必要时先 grill，再产出可执行的 brief |
 | 想换某个席位的模型、或让评审跨模型家族 | `/pp-zcode:setup-models` | 检测可用模型 → 选预算档位 → 写角色表并按需生成预设 agent |
+| 第一次在 Unity 工程里干活 | `/pp-zcode:unity-development-setup` | 探测程序集、生成代码边界、测试 runner 与高风险链路，写验证矩阵并声明执行技能 |
+| Unity 里实现、修 bug、重构或写测试 | `pp-zcode:unity-development` | 按 layer 选最小编译检查与行为证据；没有确定性 seam 时不强行 red-green |
 
 ### poteto-mode 内部：任务形状 → playbook
 

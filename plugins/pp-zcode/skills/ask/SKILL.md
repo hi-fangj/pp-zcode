@@ -57,6 +57,7 @@ Standalone, reachable at any point:
 - `pp-zcode:no-comments` — strip comments before review; keep only what the code cannot say.
 - `pp-zcode:benchmark-checklist` — vet a performance number before reporting or acting on it.
 - `pp-zcode:tdd` — the red → green loop, including the bug-fix regression loop.
+- `pp-zcode:unity-development` — implementation, fixes, refactors, and testing in a Unity repository: compile, EditMode/PlayMode, scene/prefab, and manual evidence instead of assuming a conventional test suite. Pair with `pp-zcode:unity-development-setup` once per Unity project.
 
 The 24 `principle-*` micro-skills are not routes: `pp-zcode:poteto-mode` loads them by name while it works.
 
@@ -82,3 +83,4 @@ These are references, not sessions: reach for them when the words, not the proce
 
 `pp-zcode:setup-matt-pocock-skills` configures the issue tracker, triage labels, and domain docs the flow assumes. Run it once per project before the first flow.
 
+A Unity project also runs `pp-zcode:unity-development-setup` once: it writes the project's verification matrix to `docs/agents/unity-development.md` and declares `pp-zcode:unity-development` in the repository's agent instructions.

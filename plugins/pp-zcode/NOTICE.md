@@ -20,6 +20,9 @@ licensed MIT. Upstream version at the time of porting: 0.15.28.
 - `skills/how/`, `skills/why/`, `skills/architect/`, `skills/swarm/`,
   `skills/arena/`, `skills/unslop/`, `skills/technical-writing/`,
   `skills/benchmark-checklist/`
+- `skills/interrogate/references/{reviewer-prompt,rubric,code-quality-review,lead-judgment}.md`
+  from [pstack-zcode](https://github.com/ChHsiching/pstack-zcode), which adapts
+  upstream pstack's `skills/interrogate/references/`.
 - `skills/no-comments/SKILL.md`; its `references/comment-sicko.md` is upstream
   `agents/comment-sicko.md`, relocated because zcode plugins ship no agents
   directory.
@@ -28,12 +31,16 @@ licensed MIT. Upstream version at the time of porting: 0.15.28.
 Cursor-specific names inside vendored files are resolved by the Harness adapter
 in `skills/poteto-mode/SKILL.md`, not by editing the upstream text. The edits
 made anyway are mechanical: the vendored `how`, `why`, `arena`, `swarm`, and
-`no-comments` skills name the bundled execution skill, and every skill reference
+`no-comments` skills name the bundled execution skill, every skill reference
 uses the qualified `pp-zcode:<name>` form so a user-level skill of the same name
-cannot shadow the bundled copy.
+cannot shadow the bundled copy, and every model-role lookup reads
+`~/.zcode/pp-zcode/models.md` instead of upstream's Cursor rule
+`~/.cursor/rules/pstack-models.mdc`.
 
 **Original to this plugin:** `skills/ask/`, `skills/implement-spec/`,
-`skills/pipeline-accept/`, `skills/pipeline-status/`.
+`skills/pipeline-accept/`, `skills/pipeline-status/`, `skills/setup-models/`
+(the zcode model-role data file and preset-agent scheme, after
+[pstack-zcode](https://github.com/ChHsiching/pstack-zcode)'s `setup-pstack`).
 
 ## Matt Pocock's skills
 

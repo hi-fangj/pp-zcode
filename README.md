@@ -59,15 +59,27 @@ plugins/pp-zcode/
     ├── pipeline-accept/              ★ 最终验收门：spec 验收标准 × 证据矩阵
     ├── pipeline-status/              只读进度查询：阶段判定 + 工单表 + 下一步归属
     ├── how / why / architect / swarm / arena    执行侧路由技能
+    ├── interrogate/                  ★ 对抗评审：按配置的模型面板逐一向变更开火，合成一个裁决
+    │   └── references/               评审提示词、评分表、代码质量视角、主审判断框架
+    ├── setup-models/                 ★ 模型角色配置：写 ~/.zcode/pp-zcode/models.md，生成预设 agent
     ├── unslop / no-comments / technical-writing / benchmark-checklist
     └── principle-*/（24 个）          pstack 原则微技能
 ```
 
 插件图标在仓库根的 `assets/icon.png`（512×512，SVG 源文件同目录）。ZCode 的市场卡片按 HTTPS URL 加载图标，`marketplace.json` 的 `icon` 指向本仓库该文件的 raw 地址；仓库为私有时 raw 地址不可匿名读取，卡片会退回默认图标。
 
-移植方式沿用 pstack 官方的适配层做法：上游技能**原样保留**，所有 Cursor 专有名称（Task、模型 slug、cloud agent、Bugbot 等）集中在 `poteto-mode` 的 Harness adapter 一张表里映射到 zcode 的对应物（`Agent`、宿主的 glm-coder / glm-reviewer / glm-tester 等专项 agent、`gh`、browser-use 技能）。未随插件携带的上游技能（`interrogate`、`figure-it-out`、`show-me-your-work`、babysit 等）在 Substitutions 表里给了明确的替代行为，不靠猜。
+移植方式沿用 pstack 官方的适配层做法：上游技能**原样保留**，所有 Cursor 专有名称（Task、模型 slug、cloud agent、Bugbot 等）集中在 `poteto-mode` 的 Harness adapter 一张表里映射到 zcode 的对应物（`Agent`、宿主的 glm-coder / glm-reviewer / glm-tester 等专项 agent、`gh`、browser-use 技能）。未随插件携带的上游技能（`figure-it-out`、`show-me-your-work`、babysit 等）在 Substitutions 表里给了明确的替代行为，不靠猜。`interrogate` 随插件打包，替代原先"spawn 一个 glm-reviewer"的单点替代。
 
 Pocock 技能按上游原文打包，只做了一处机械改动：技能之间的调用与指引改成 `pp-zcode:<name>` 限定名。唯一的内容融合在 `tdd`：保留 Pocock 的测试方法论，并并入 pstack 的 bug 修复循环、跳过规则与证据报告。
+
+## 模型角色
+
+执行侧技能不写死模型。它们读 `~/.zcode/pp-zcode/models.md` 一张角色表，逐行决定每个席位用什么模型、什么推理等级；文件不存在时每个角色都是 `inherit-parent`，即跟随会话模型。
+
+- **写配置**：`/pp-zcode:setup-models`。它检测本机可用模型、询问预算档位（unlimited / large / medium / small）、可选生成"两家族面板"，然后写入角色表。
+- **生效方式**：标量角色（feature / bug-fix / how explorer / why synthesizer 等）钉了真实模型时，setup 会生成 `~/.zcode/agents/pp-zcode-<role>.md` 预设 agent；面板角色（`arena runners`、`architect runners`、`interrogate reviewers`）直接把模型列表写进 dynamic workflow，一个条目一个子代理。
+- **刷新已保存 workflow**：`setup-models` 会检测 `~/.zcode/workflows/pp-zcode-*.dwf.ts` 里钉住的模型是否与角色表一致，过期就重新生成。
+- **对抗评审**：`/pp-zcode:interrogate` 按 `interrogate reviewers` 行逐一 spawn reviewer。信号来自模型多样性，而不是给每个 reviewer 分配不同人设；主会话按 Act on / Consider / Noted / Dismissed 四档合成裁决。
 
 ## 依赖
 
@@ -84,7 +96,7 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 - 远程：**Plugin Marketplace → Add → Add Plugin Marketplace**，粘贴 `https://github.com/hi-fangj/pp-zcode`（私有仓库需本机 git 凭证，如 gh 登录）
 - 本地：粘贴本仓库的根目录路径
 
-然后 **Personal → pp-zcode-market → pp-zcode → Install**，在目标项目跑一次 `/pp-zcode:setup-matt-pocock-skills` 配置 issue tracker。
+然后 **Personal → pp-zcode-market → pp-zcode → Install**，在目标项目跑一次 `/pp-zcode:setup-matt-pocock-skills` 配置 issue tracker。想调整执行侧各席位的模型，再跑一次 `/pp-zcode:setup-models`（可选）。
 
 ## 使用
 
@@ -97,6 +109,8 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 /pp-zcode:poteto-mode 修复登录超时              # 小活直接进引擎，按任务形状选 playbook
 /pp-zcode:pipeline-accept                      # spec 背书的活执行完后逐条验收
 /pp-zcode:pipeline-status 购物车                # 只读查询：进度在哪、下一步归谁
+/pp-zcode:interrogate                          # 对抗评审：按配置的模型面板逐一向当前变更开火
+/pp-zcode:setup-models                         # 配置各席位模型与推理档位（可选，默认全跟随会话模型）
 ```
 
 ### 场景 → 技能路由
@@ -114,6 +128,7 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 | 工单全部 verified，要最终验收 | `/pp-zcode:pipeline-accept` | 逐条验收标准对证据，输出 pass / fail / unverified 报告 |
 | 只想看进度，不动任何东西 | `/pp-zcode:pipeline-status <feature>` | 只读报告：阶段判定、工单表、下一个能动的工单、下一步归谁 |
 | 新 issue 或外部 PR 要归类、补信息、写 agent brief | `/pp-zcode:triage` | 按五类 triage 角色推进状态机，必要时先 grill，再产出可执行的 brief |
+| 想换某个席位的模型、或让评审跨模型家族 | `/pp-zcode:setup-models` | 检测可用模型 → 选预算档位 → 写角色表并按需生成预设 agent |
 
 ### poteto-mode 内部：任务形状 → playbook
 
@@ -138,6 +153,8 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 | 动手前先定类型、签名、模块结构 | `/pp-zcode:architect` |
 | 并行覆盖、竞速、矩阵式探索 | `/pp-zcode:swarm` |
 | 多个方案同题比稿，选底座再嫁接 losers 的强项 | `/pp-zcode:arena` |
+| 对抗评审：多模型独立挑刺，合成一个裁决 | `/pp-zcode:interrogate` |
+| 配置执行侧各席位的模型与推理档位 | `/pp-zcode:setup-models` |
 | 写文档、RFC、README、PR 描述、commit message | `/pp-zcode:technical-writing` |
 | 去掉文字里的 AI 腔 | `/pp-zcode:unslop` |
 | 审查代码里的注释是否该留 | `/pp-zcode:no-comments` |
@@ -158,10 +175,11 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 
 ## 实施路线
 
-- **v0.6（当前）**：新增 `pp-zcode:ask` 技能路由器：按处境把工作导向插件内合适的技能与流程，不引入强制链条。
+- **v0.7（当前）**：移植 pstack-zcode 的模型角色机制：新增 `pp-zcode:setup-models`（角色表 + 预算档位 + 预设 agent + workflow 刷新）与 `pp-zcode:interrogate`（多模型对抗评审）；执行侧技能改为读取 `~/.zcode/pp-zcode/models.md`，不再引用 Cursor 规则或写死模型 slug。
+- **v0.6**：新增 `pp-zcode:ask` 技能路由器：按处境把工作导向插件内合适的技能与流程，不引入强制链条。
 - **v0.5**：Pocock 需求侧技能（含 triage）随插件打包，所有技能统一以 `pp-zcode:<name>` 限定名调用与互相引用，避免用户级同名技能遮蔽。
 - **v0.4**：去掉中央路由。需求链自由组合，`implement-spec` 桥接 + `poteto-mode` 直入口；串行闭环维持。
-- 之后：并行 fan-out（明确文件所有权与合并顺序）、补 `interrogate` / `figure-it-out` 等上游技能、失败重试与任务恢复。
+- 之后：并行 fan-out（明确文件所有权与合并顺序）、补 `figure-it-out` 等上游技能、失败重试与任务恢复。
 
 ## 上游与许可
 

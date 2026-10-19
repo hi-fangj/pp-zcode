@@ -51,6 +51,7 @@ Standalone, reachable at any point:
 - `pp-zcode:architect` — sketch types, signatures, and module boundaries before writing code.
 - `pp-zcode:arena` — run several candidates at one non-trivial task, pick a base, graft the strongest parts.
 - `pp-zcode:swarm` — fan out parallel workers and return one report.
+- `pp-zcode:interrogate` — adversarial review from one reviewer per configured model, synthesized into one verdict.
 - `pp-zcode:technical-writing` — docs, RFCs, READMEs, PR descriptions, commit messages.
 - `pp-zcode:unslop` — cut AI tells from any prose.
 - `pp-zcode:no-comments` — strip comments before review; keep only what the code cannot say.
@@ -58,6 +59,10 @@ Standalone, reachable at any point:
 - `pp-zcode:tdd` — the red → green loop, including the bug-fix regression loop.
 
 The 24 `principle-*` micro-skills are not routes: `pp-zcode:poteto-mode` loads them by name while it works.
+
+## Model roles
+
+`pp-zcode:setup-models` writes `~/.zcode/pp-zcode/models.md`, the role → model table every execution-side skill reads at spawn time. With no file, every role runs on the session model. Reach for it when the user wants one role on a stronger or cheaper model, or wants a review panel spanning model families.
 
 ## Vocabulary underneath
 
@@ -76,3 +81,4 @@ These are references, not sessions: reach for them when the words, not the proce
 ## First run
 
 `pp-zcode:setup-matt-pocock-skills` configures the issue tracker, triage labels, and domain docs the flow assumes. Run it once per project before the first flow.
+

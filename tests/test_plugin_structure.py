@@ -17,7 +17,14 @@ REPO = Path(__file__).resolve().parent.parent
 PLUGIN = REPO / "plugins" / "pp-zcode"
 SKILLS = PLUGIN / "skills"
 
-FUSION_SKILLS = ["implement-spec", "poteto-mode", "pipeline-accept", "ask"]
+FUSION_SKILLS = [
+    "implement-spec",
+    "poteto-mode",
+    "pipeline-accept",
+    "ask",
+    "interrogate",
+    "setup-models",
+]
 POCOCK_SKILLS = [
     "grilling",
     "grill-me",
@@ -59,6 +66,7 @@ BUNDLED_SKILL_NAMES = sorted(set(FUSION_SKILLS + POCOCK_SKILLS + [
     "architect",
     "arena",
     "swarm",
+    "interrogate",
     "unslop",
     "no-comments",
     "technical-writing",
@@ -311,6 +319,7 @@ class TestRouter(unittest.TestCase):
         "architect",
         "arena",
         "swarm",
+        "interrogate",
         "technical-writing",
         "unslop",
         "no-comments",
@@ -318,6 +327,7 @@ class TestRouter(unittest.TestCase):
         "domain-modeling",
         "codebase-design",
         "setup-matt-pocock-skills",
+        "setup-models",
     ]
 
     def test_names_every_routable_skill(self):
@@ -343,6 +353,66 @@ class TestPipelineStatus(unittest.TestCase):
         fm = frontmatter(SKILLS / "pipeline-status" / "SKILL.md")
         self.assertNotIn("disable-model-invocation", fm,
                          "pipeline-status must stay model-invocable")
+
+
+class TestModelRoles(unittest.TestCase):
+    """Model roles live in one host data file, not in model slugs baked into skills.
+    A skill that still names a Cursor rule or a hardcoded slug silently ignores the
+    user's configuration."""
+
+    MODELS_FILE = "~/.zcode/pp-zcode/models.md"
+
+    def test_no_cursor_model_rule_survives(self):
+        for path in sorted(SKILLS.rglob("*.md")):
+            text = path.read_text(encoding="utf-8")
+            self.assertNotIn("pstack-models.mdc", text,
+                             f"{path.relative_to(SKILLS)} still reads the Cursor rule")
+
+    def test_no_hardcoded_model_slugs(self):
+        slugs = re.compile(r"\b(?:claude-opus|grok|composer)-[a-z0-9.-]+")
+        for path in sorted(SKILLS.rglob("*.md")):
+            match = slugs.search(path.read_text(encoding="utf-8"))
+            self.assertIsNone(match,
+                              f"{path.relative_to(SKILLS)} hardcodes model slug "
+                              f"{match.group(0) if match else ''}")
+
+    def test_role_reading_skills_name_the_data_file(self):
+        for name in ("arena", "swarm", "how", "why", "architect", "interrogate",
+                     "poteto-mode", "setup-models"):
+            text = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn(self.MODELS_FILE, text,
+                          f"{name} must read {self.MODELS_FILE}")
+
+    def test_every_role_line_is_written_by_setup(self):
+        setup = (SKILLS / "setup-models" / "SKILL.md").read_text(encoding="utf-8")
+        for role in (
+            "feature, refactoring",
+            "bug-fix",
+            "hardest tasks",
+            "judgment and prose",
+            "how explorer",
+            "how explainer",
+            "why investigators",
+            "why synthesizer",
+            "arena runners",
+            "arena cross-judge pool",
+            "swarm workers",
+            "architect runners",
+            "interrogate reviewers",
+        ):
+            self.assertIn(role, setup, f"setup-models dropped the {role} role")
+
+    def test_interrogate_ships_its_review_material(self):
+        for ref in ("reviewer-prompt.md", "rubric.md", "code-quality-review.md",
+                    "lead-judgment.md"):
+            self.assertTrue((SKILLS / "interrogate" / "references" / ref).is_file(),
+                            f"interrogate is missing references/{ref}")
+
+    def test_interrogate_and_setup_stay_user_invoked(self):
+        for name in ("interrogate", "setup-models"):
+            fm = frontmatter(SKILLS / name / "SKILL.md")
+            self.assertEqual(fm.get("disable-model-invocation"), "true",
+                             f"{name} must stay user-invoked")
 
 
 if __name__ == "__main__":

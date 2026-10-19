@@ -28,7 +28,7 @@ Skip Phase A only when the work is genuinely greenfield with no surrounding syst
 
 Run `pp-zcode:arena` with the design-sketch task and the Phase A grounding artifacts. Pass `references/runner-prompt.md` as each runner's prompt.
 
-Take the runners from the `architect runners` line in the `pstack-models.mdc` rule, in place of the `arena runners` line. If the rule or that line is missing, use `claude-opus-5-5-xhigh` and `grok-4.7-xhigh-fast`. Alias and rejected entries follow the runner rules in `pp-zcode:arena`'s Phase A.
+Take the runners from the `architect runners` line in `~/.zcode/pp-zcode/models.md`, in place of the `arena runners` line. If the file or that line is missing, use two `inherit-parent` entries, since Phase B requires at least two structurally distinct candidates. Alias and rejected entries follow the runner rules in `pp-zcode:arena`'s Phase A.
 
 Design it twice. Require at least two structurally distinct candidates before synthesis, even when the first looks sufficient. This is `pp-zcode:principle-exhaust-the-design-space` made concrete. Whole-shape alternatives, not point fixes inside one shape.
 
@@ -44,7 +44,7 @@ Default: proceed directly to implementation with the synthesized design. No huma
 
 Opt in to a checkpoint when the invoker explicitly asks: "/pp-zcode:architect with checkpoint," "stop and show me before implementing," or similar. Then surface the synthesized design and pause for sign-off.
 
-The synthesis can ship as its own commit either way, as the "scaffold first" mode of `pp-zcode:principle-foundational-thinking`. Planned and scoped breakage during fill-in is fine, per `pp-zcode:principle-outcome-oriented-execution`. For adversarial pressure on the design before implementing, run the **interrogate** skill on the synthesized sketch.
+The synthesis can ship as its own commit either way, as the "scaffold first" mode of `pp-zcode:principle-foundational-thinking`. Planned and scoped breakage during fill-in is fine, per `pp-zcode:principle-outcome-oriented-execution`. For adversarial pressure on the design before implementing, run `pp-zcode:interrogate` on the synthesized sketch.
 
 If the human pushes back on the shape (in a checkpoint or after the fact), treat that as Phase A evidence. Re-ground and re-run Phase B before writing more code.
 

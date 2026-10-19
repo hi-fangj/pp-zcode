@@ -35,7 +35,7 @@ Upstream text uses Cursor names. Apply the Harness adapter below once per sessio
 | Any of the above missing | `general-purpose` with the same brief. |
 | `environment: "cloud"` | Tell the worker to check out its own worktree or branch first. |
 | `run_in_background: true` | Omit. Subagents run in the background by default and notify on completion. |
-| Model slugs (`grok-…`, `claude-opus-…`, effort levels, `-fast`) | Drop them. The session and host agent configuration govern models. Say so once when you drop one. |
+| Model slugs (`grok-…`, `claude-opus-…`, effort levels, `-fast`) | Read the role line in `~/.zcode/pp-zcode/models.md`. A pinned `providerId/modelId[@<level>]` runs on its preset agent `pp-zcode-<role>`; `inherit-parent` or a missing line leaves the model unset so the subagent follows the session model. Never write a raw model slug into a brief. |
 | `resume` an agent | Spawn a fresh agent and paste the earlier result into its brief. |
 
 ### Delegate brief block
@@ -62,7 +62,7 @@ the todo list, and every spawn. You own only the scope below.
 | Upstream reference | Do this instead |
 | --- | --- |
 | Upstream's `tdd` skill | Use the bundled `pp-zcode:tdd`: failing test at the spec's seam, then the change, then the full check. |
-| `interrogate` (contested design) | Spawn a fresh `glm-reviewer` on the same design question and compare verdicts; agreement is high-signal. Still contested → put the fork to the user. |
+| `interrogate` (contested design) | Use the bundled `pp-zcode:interrogate`: one reviewer per configured model, synthesized into one verdict. Still contested after synthesis → put the fork to the user. |
 | `figure-it-out` (bespoke playbook for large work) | Hand the work back: large or cross-cutting work gets split into tickets with `pp-zcode:to-tickets` and handed over through `pp-zcode:implement-spec`, not improvised here. |
 | `show-me-your-work` (decision trail) | The decision trail lives in the ticket files and the `pp-zcode:pipeline-accept` report. |
 | `babysit` playbook and `scripts/watch-pr` | Use `gh pr checks --watch <pr>` and `gh pr view` in a loop. |
@@ -149,7 +149,9 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 
 **Match the delegate to the job** per the Harness adapter. Prefer the host's specialist agents (`glm-coder`, `glm-coder-flash`, `glm-explorer`, `glm-reviewer`, `glm-tester`) over generic ones; fall back to `general-purpose` with the Delegate brief block. Every spawn carries the Delegate brief block plus a specific scope: file paths, the named data shape and its organizing structure, and success criteria.
 
-**You own every subagent's work.** Review the diff and write your own summary, don't pass through what it said. A second opinion is the same prompt against a fresh agent. Agreement is high-signal.
+**Model roles.** Read `~/.zcode/pp-zcode/models.md` at spawn time. Every role defaults to `inherit-parent`, which means the model stays unset and the subagent follows the session model. A role pinned to `providerId/modelId[@<level>]` runs on its preset agent `pp-zcode-<role>`, written by `pp-zcode:setup-models`; spawn the preset by name. Routed skills (`pp-zcode:how`, `pp-zcode:why`, `pp-zcode:arena`, `pp-zcode:swarm`, `pp-zcode:architect`, `pp-zcode:interrogate`) read their own role lines, so do not override them to a preset. The code playbooks read `feature, refactoring`, `bug-fix`, or `hardest tasks`; prose and judgment read `judgment and prose`. When a spawn rejects a pinned model, use the session model and say so.
+
+**You own every subagent's work.** Review the diff and write your own summary, don't pass through what it said. A second opinion is the same prompt against a fresh agent, and against a different model when `pp-zcode:interrogate` has one configured. Agreement is high-signal.
 
 **Fresh subagents by default.** Give new work to a fresh subagent with consolidated scope, meaning the original brief, every later directive, and the prior agent's report and branch. This holds for a fix round, a follow-up, a retry, and the next queue item. Resume an existing subagent only when the new work strictly needs state that lives in that agent and is costly to move: its local checkout, its uncommitted changes, or a process it still runs, such as a dev server. A stop or hold order to a running agent is not reuse. Interrupt-chained resumes silently drop directives, so fire a fresh subagent with consolidated scope rather than trusting a "done" summary.
 

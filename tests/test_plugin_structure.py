@@ -17,7 +17,7 @@ REPO = Path(__file__).resolve().parent.parent
 PLUGIN = REPO / "plugins" / "pp-zcode"
 SKILLS = PLUGIN / "skills"
 
-FUSION_SKILLS = ["implement-spec", "poteto-mode", "pipeline-accept"]
+FUSION_SKILLS = ["implement-spec", "poteto-mode", "pipeline-accept", "ask"]
 POCOCK_SKILLS = [
     "grilling",
     "grill-me",
@@ -259,6 +259,49 @@ class TestFusionContent(unittest.TestCase):
         self.assertIn("Ticketless", engine, "poteto-mode lost its ticketless brief branch")
         for verdict in ("pass", "fail", "unverified"):
             self.assertIn(verdict, accept, f"pipeline-accept lost its {verdict} verdict")
+
+
+class TestRouter(unittest.TestCase):
+    """pp-zcode:ask is the discovery surface. A routable skill that it fails to
+    name is a skill the user has to remember, which is the problem it exists to
+    solve."""
+
+    ROUTED_SKILLS = [
+        "grilling",
+        "grill-me",
+        "grill-with-docs",
+        "to-spec",
+        "to-tickets",
+        "implement-spec",
+        "poteto-mode",
+        "pipeline-accept",
+        "pipeline-status",
+        "triage",
+        "tdd",
+        "how",
+        "why",
+        "architect",
+        "arena",
+        "swarm",
+        "technical-writing",
+        "unslop",
+        "no-comments",
+        "benchmark-checklist",
+        "domain-modeling",
+        "codebase-design",
+        "setup-matt-pocock-skills",
+    ]
+
+    def test_names_every_routable_skill(self):
+        text = (SKILLS / "ask" / "SKILL.md").read_text(encoding="utf-8")
+        for name in self.ROUTED_SKILLS:
+            self.assertIn(f"pp-zcode:{name}", text,
+                          f"the router lost its route to {name}")
+
+    def test_stays_user_invoked(self):
+        fm = frontmatter(SKILLS / "ask" / "SKILL.md")
+        self.assertEqual(fm.get("disable-model-invocation"), "true",
+                         "the router must not be invoked by the model on its own")
 
 
 class TestPipelineStatus(unittest.TestCase):

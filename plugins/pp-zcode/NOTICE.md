@@ -32,8 +32,8 @@ made anyway are mechanical: the vendored `how`, `why`, `arena`, `swarm`, and
 uses the qualified `pp-zcode:<name>` form so a user-level skill of the same name
 cannot shadow the bundled copy.
 
-**Original to this plugin:** `skills/implement-spec/`, `skills/pipeline-accept/`,
-`skills/pipeline-status/`.
+**Original to this plugin:** `skills/ask/`, `skills/implement-spec/`,
+`skills/pipeline-accept/`, `skills/pipeline-status/`.
 
 ## Matt Pocock's skills
 

@@ -1,6 +1,6 @@
 # pp-zcode
 
-融合两套上游体系的 zcode 插件，两侧技能都随插件打包：**Matt Pocock 的 Skills** 负责需求工程（做什么、做到什么程度），**PStack（poteto-mode）** 负责工程执行（怎么做、如何证明做对了）。没有中央路由器：需求侧技能自由组合，工作多小、流程就多短；`implement-spec` 把 spec（及其工单）交接给 `poteto-mode` 执行引擎，`pipeline-accept` 凭证据逐条验收。
+融合两套上游体系的 zcode 插件，两侧技能都随插件打包：**Matt Pocock 的 Skills** 负责需求工程（做什么、做到什么程度），**PStack（poteto-mode）** 负责工程执行（怎么做、如何证明做对了）。没有强制中央路由（可选的 `pp-zcode:ask` 只负责指路）：需求侧技能自由组合，工作多小、流程就多短；`implement-spec` 把 spec（及其工单）交接给 `poteto-mode` 执行引擎，`pipeline-accept` 凭证据逐条验收。
 
 ```
 pp-zcode:grilling → pp-zcode:to-spec → (pp-zcode:to-tickets) │ pp-zcode:implement-spec │ pp-zcode:poteto-mode → pp-zcode:pipeline-accept
@@ -40,6 +40,7 @@ zcode 会把插件技能同时注册为 `pp-zcode:<name>` 和裸名 `<name>`。�
 plugins/pp-zcode/
 ├── .zcode-plugin/plugin.json
 └── skills/
+    ├── ask/                          入口：按处境路由到合适的技能或流程
     ├── grilling/                     Pocock 需求侧：逐轮追问，设计树推进
     ├── grill-me/                     入口：直接调用 grilling
     ├── grill-with-docs/              入口：grilling + domain-modeling
@@ -86,6 +87,7 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 ## 使用
 
 ```
+/pp-zcode:ask 给购物车加一个"稍后再买"列表  # 不确定用哪个技能：按处境指路
 /pp-zcode:grill-me 给购物车加一个"稍后再买"列表  # 追问清需求（要沉淀 ADR/词汇表用 /pp-zcode:grill-with-docs）
 /pp-zcode:to-spec                              # 把已谈妥的决策综合成 spec，发布到 tracker
 /pp-zcode:to-tickets                           # 大活才需要：把 spec 拆成带阻塞边的纵切工单
@@ -101,6 +103,7 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 
 | 你遇到的情况 | 用什么 | 会发生什么 |
 | --- | --- | --- |
+| 不确定该用哪个技能、该从哪一步开始 | `/pp-zcode:ask <你的情况>` | 按处境路由到最合适的技能或流程并说明理由；要动手时直接接手 |
 | 有新需求或想法，还没谈清 | `/pp-zcode:grill-me`（要沉淀 ADR/词汇表用 `/pp-zcode:grill-with-docs`） | 逐轮追问，直到关键问题全部决策 |
 | 决策已敲定，要固化成规格 | `/pp-zcode:to-spec` | 只综合、不再追问，发布 spec 到 tracker 并打 `ready-for-agent` |
 | spec 太大，要拆成可独立验证的工单 | `/pp-zcode:to-tickets` | 纵切工单 + 阻塞边，粒度经你确认 |
@@ -153,7 +156,8 @@ Matt Pocock 的需求侧技能已随插件打包，**不需要**再单独安装�
 
 ## 实施路线
 
-- **v0.5（当前）**：Pocock 需求侧技能（含 triage）随插件打包，所有技能统一以 `pp-zcode:<name>` 限定名调用与互相引用，避免用户级同名技能遮蔽。
+- **v0.6（当前）**：新增 `pp-zcode:ask` 技能路由器：按处境把工作导向插件内合适的技能与流程，不引入强制链条。
+- **v0.5**：Pocock 需求侧技能（含 triage）随插件打包，所有技能统一以 `pp-zcode:<name>` 限定名调用与互相引用，避免用户级同名技能遮蔽。
 - **v0.4**：去掉中央路由。需求链自由组合，`implement-spec` 桥接 + `poteto-mode` 直入口；串行闭环维持。
 - 之后：并行 fan-out（明确文件所有权与合并顺序）、补 `interrogate` / `figure-it-out` 等上游技能、失败重试与任务恢复。
 

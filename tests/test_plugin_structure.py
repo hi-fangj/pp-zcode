@@ -135,6 +135,34 @@ class TestMarketplace(unittest.TestCase):
         self.assertEqual(found, [REPO / "marketplace.json"])
 
 
+class TestPluginIcon(unittest.TestCase):
+    """The marketplace icon is loaded by the ZCode renderer as a remote <img>,
+    so the catalog must point at an https URL whose path mirrors the shipped
+    asset. A private repository at that URL renders no icon."""
+
+    def test_marketplace_icon_is_https_and_names_the_shipped_asset(self):
+        entry = json.loads((REPO / "marketplace.json").read_text())["plugins"][0]
+        icon = entry.get("icon", "")
+        self.assertTrue(icon.startswith("https://"),
+                        "plugin icon must be an https URL")
+        self.assertTrue(icon.endswith("/assets/icon.png"),
+                        "plugin icon URL must point at assets/icon.png")
+
+    def test_png_ships_at_512_square(self):
+        data = (REPO / "assets" / "icon.png").read_bytes()
+        self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n", "icon.png is not a PNG")
+        width = int.from_bytes(data[16:20], "big")
+        height = int.from_bytes(data[20:24], "big")
+        self.assertEqual((width, height), (512, 512),
+                         "ZCode plugin icons ship at 512x512")
+
+    def test_svg_source_ships_and_matches_the_png_canvas(self):
+        svg = (REPO / "assets" / "icon.svg").read_text(encoding="utf-8")
+        self.assertTrue(svg.lstrip().startswith("<svg"), "icon.svg is not SVG")
+        self.assertIn('viewBox="0 0 512 512"', svg)
+        self.assertNotIn("{{", svg, "icon.svg contains an unresolved placeholder")
+
+
 class TestSkills(unittest.TestCase):
     def test_every_skill_dir_has_skill_md(self):
         for name, path in skill_dirs().items():

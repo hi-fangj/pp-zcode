@@ -4,11 +4,12 @@
     {
       "name": "pp-zcode",
       "source": "./plugins/pp-zcode",
-      "version": "0.6.0",
+      "version": "0.6.1",
       "description": "Pocock × PStack in one plugin: Matt Pocock's requirements skills (grilling / to-spec / to-tickets and their support skills) ship bundled, implement-spec bridges a spec or ticket set to the poteto-mode execution engine (a zcode port of pstack), and pipeline-accept gates delivery on evidence. Invoke every skill by its qualified pp-zcode:<name> so a user-level install of the same skill cannot shadow it.",
       "displayName": "PP · Pocock × PStack",
       "displayName_i18n": { "zh-CN": "PP 融合流水线" },
       "description_i18n": { "zh-CN": "Pocock 需求技能（grilling / to-spec / to-tickets 及配套技能）随插件打包，implement-spec 把 spec/工单交接给 poteto-mode 执行引擎（pstack 移植版），pipeline-accept 凭证据验收；所有技能以 pp-zcode:<name> 限定名调用，避免被用户级同名技能遮蔽" },
+      "icon": "https://raw.githubusercontent.com/hi-fangj/pp-zcode/main/assets/icon.png",
       "category": "developer-tools"
     }
   ]

@@ -63,6 +63,8 @@ plugins/pp-zcode/
     └── principle-*/（24 个）          pstack 原则微技能
 ```
 
+插件图标在仓库根的 `assets/icon.png`（512×512，SVG 源文件同目录）。ZCode 的市场卡片按 HTTPS URL 加载图标，`marketplace.json` 的 `icon` 指向本仓库该文件的 raw 地址；仓库为私有时 raw 地址不可匿名读取，卡片会退回默认图标。
+
 移植方式沿用 pstack 官方的适配层做法：上游技能**原样保留**，所有 Cursor 专有名称（Task、模型 slug、cloud agent、Bugbot 等）集中在 `poteto-mode` 的 Harness adapter 一张表里映射到 zcode 的对应物（`Agent`、宿主的 glm-coder / glm-reviewer / glm-tester 等专项 agent、`gh`、browser-use 技能）。未随插件携带的上游技能（`interrogate`、`figure-it-out`、`show-me-your-work`、babysit 等）在 Substitutions 表里给了明确的替代行为，不靠猜。
 
 Pocock 技能按上游原文打包，只做了一处机械改动：技能之间的调用与指引改成 `pp-zcode:<name>` 限定名。唯一的内容融合在 `tdd`：保留 Pocock 的测试方法论，并并入 pstack 的 bug 修复循环、跳过规则与证据报告。

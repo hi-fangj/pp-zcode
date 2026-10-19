@@ -49,11 +49,14 @@ plugins/pp-zcode/
 - **宿主专项 agent**（glm-coder / glm-coder-flash / glm-explorer / glm-reviewer / glm-tester）：存在则优先使用，缺失时回落到 general-purpose 并内联委派简报。
 - 目标项目先跑一次 `/setup-matt-pocock-skills` 配置 issue tracker。
 
-## 安装（本地测试）
+## 安装
 
-1. zcode → **Plugin Marketplace → Add → Add Plugin Marketplace**，粘贴本仓库的 `plugins/` 目录。
-2. **Personal → 对应市场 → pp-zcode → Install**。
-3. 在目标项目里跑一次 `/setup-matt-pocock-skills`，然后从 `/pp` 进入流水线。
+市场目录在仓库根的 `marketplace.json`，添加方式二选一（**粘贴仓库或目录地址，不要粘贴 GitHub 网页里某个文件的链接**）：
+
+- 远程：**Plugin Marketplace → Add → Add Plugin Marketplace**，粘贴 `https://github.com/hi-fangj/pp-zcode`（私有仓库需本机 git 凭证，如 gh 登录）
+- 本地：粘贴本仓库的根目录路径
+
+然后 **Personal → pp-zcode-market → pp-zcode → Install**，在目标项目跑一次 `/setup-matt-pocock-skills`，从 `/pp` 进入流水线。
 
 ## 使用
 

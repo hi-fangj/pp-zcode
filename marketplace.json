@@ -1,9 +1,9 @@
 {
-  "name": "dev-pp-zcode",
+  "name": "pp-zcode-market",
   "plugins": [
     {
       "name": "pp-zcode",
-      "source": "./pp-zcode",
+      "source": "./plugins/pp-zcode",
       "version": "0.1.0",
       "description": "Fused pipeline plugin: Matt Pocock's skills own requirements (grilling / to-spec / to-tickets), this plugin's zcode port of pstack poteto-mode owns execution and proof, and the pp router gates every handoff from idea to verified delivery.",
       "displayName": "PP · Pocock × PStack",

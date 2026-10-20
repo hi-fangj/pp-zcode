@@ -1,7 +1,7 @@
 {
   "name": "pp-zcode",
-  "version": "0.9.0",
-  "description": "Pocock × PStack in one plugin: Matt Pocock's requirements skills (grilling / to-spec / to-tickets and their support skills) ship bundled, implement-spec bridges a spec or ticket set to the poteto-mode execution engine (a zcode port of pstack), poteto-mode's independent review runs the bundled two-axis code-review, pipeline-accept gates delivery on evidence plus a code → spec sweep, and interrogate runs a multi-model adversarial review panel. Model roles are configured per host in ~/.zcode/pp-zcode/models.md. Invoke every skill by its qualified pp-zcode:<name> so a user-level install of the same skill cannot shadow it.",
+  "version": "0.10.0",
+  "description": "Pocock × PStack in one plugin: Matt Pocock's requirements and diagnosis skills (grilling / to-spec / to-tickets / diagnosing-bugs and their support skills) ship bundled, implement-spec bridges a spec or ticket set to the poteto-mode execution engine (a zcode port of pstack), hard bugs run the bundled diagnosing-bugs loop inside the bug-fix playbook, poteto-mode's independent review runs the bundled two-axis code-review, pipeline-accept gates delivery on evidence plus a code → spec sweep, and interrogate runs a multi-model adversarial review panel. Model roles are configured per host in ~/.zcode/pp-zcode/models.md. Invoke every skill by its qualified pp-zcode:<name> so a user-level install of the same skill cannot shadow it.",
   "author": {
     "name": "pp-zcode"
   },

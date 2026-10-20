@@ -82,6 +82,8 @@ install present at the time of porting.
 - `skills/setup-matt-pocock-skills/`
 - `skills/triage/`
 - `skills/tdd/`, `skills/codebase-design/`, `skills/code-review/`
+- `skills/diagnosing-bugs/` (SKILL.md, `agents/openai.yaml`, and
+  `scripts/hitl-loop.template.sh`)
 
 Each skill keeps its upstream `SKILL.md`, reference files, and `agents/openai.yaml`
 metadata.
@@ -95,4 +97,6 @@ one step further: its two reviewers spawn through the host's `Agent` tool
 (`glm-reviewer` when present), its issue lookup follows the tracker workflow in
 `docs/agents/issue-tracker.md`, and it is wired into the pipeline as the
 independent review in `poteto-mode` and the code → spec sweep in
-`pipeline-accept`.
+`pipeline-accept`. `skills/diagnosing-bugs/` keeps its upstream text and is
+wired into the pipeline by reference: the `bug-fix` playbook runs it for hard
+bugs, `tdd` defers to its Phase 5 seam rule, and `ask` routes hard bugs to it.

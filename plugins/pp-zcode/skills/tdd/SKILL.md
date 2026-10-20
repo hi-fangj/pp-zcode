@@ -41,6 +41,8 @@ When the shape of that interface is itself in question (how deep the module is, 
 
 When the task is a bug with a cheap local test path, make the broken behavior executable before changing production code. The goal is a focused regression test that fails before the fix and passes after it.
 
+When the bug is hard — no clean reproduction, intermittent, or a performance regression — load `pp-zcode:diagnosing-bugs` first. It builds and tightens a red-capable feedback loop, minimises the repro, and ranks falsifiable hypotheses before any fix. Its Phase 5 is this loop: turn the minimised repro into the failing test at a correct seam, then fix.
+
 1. **Understand the bug.** State the intended behavior, the current behavior, the affected path, and the smallest observable reproduction.
 2. **Choose the narrowest executable check.** Prefer the closest unit, component, integration, or regression test already used for that codepath. Do not build a harness from scratch just to satisfy the loop.
 3. **Write the failing test first.** Add the smallest focused test that would have caught the bug. It encodes intended behavior, not the current implementation.

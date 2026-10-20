@@ -27,7 +27,7 @@ This is the default path, not a gate. Skip any stage the work does not earn; a s
 1. **Requirements** — `pp-zcode:grill-with-docs` when working in a repo: it keeps what it learns in `GLOSSARY.md` and ADRs. `pp-zcode:grill-me` when there is no repo or no paper trail is wanted. Both run `pp-zcode:grilling`; reach for the primitive directly only when you want the interview with no wrapper around it.
 2. **Spec** — `pp-zcode:to-spec` turns settled decisions into a spec on the tracker, with acceptance criteria and test seams. It synthesizes; it does not reopen the interview.
 3. **Tickets, only when earned** — `pp-zcode:to-tickets` splits a multi-part or cross-cutting spec into tracer-bullet tickets with blocking edges. One coherent feature does not need tickets: a spec without them goes straight to execution.
-4. **Execution** — `pp-zcode:implement-spec` loads the spec (and tickets, when they exist) from the tracker, builds the handoff brief, and hands it to `pp-zcode:poteto-mode`. A task that never earned a spec skips the bridge and goes straight to `pp-zcode:poteto-mode`. The engine selects a playbook by task shape — investigation, bug-fix, feature, refactoring, prototype, shipping, opening-a-pr — and drives `pp-zcode:tdd` for test-first work. Each unit's diff is independently reviewed through `pp-zcode:code-review` before it counts as done.
+4. **Execution** — `pp-zcode:implement-spec` loads the spec (and tickets, when they exist) from the tracker, builds the handoff brief, and hands it to `pp-zcode:poteto-mode`. A task that never earned a spec skips the bridge and goes straight to `pp-zcode:poteto-mode`. The engine selects a playbook by task shape — investigation, bug-fix, feature, refactoring, prototype, shipping, opening-a-pr — and drives `pp-zcode:tdd` for test-first work. A hard bug runs inside `pp-zcode:diagnosing-bugs` before the engine attempts a fix. Each unit's diff is independently reviewed through `pp-zcode:code-review` before it counts as done.
 5. **Acceptance** — `pp-zcode:pipeline-accept` matches every spec and ticket criterion against real evidence, emits pass / fail / unverified, and borrows the Spec axis of `pp-zcode:code-review` to catch unrequested behaviour before declaring completion. A direct `pp-zcode:poteto-mode` run has no spec to accept against: its hand-back report is the delivery record.
 
 Keep the requirement stages (1–3) in one context window so the interview, spec, and tickets build on the same thinking. Start execution from the written brief.
@@ -35,7 +35,8 @@ Keep the requirement stages (1–3) in one context window so the interview, spec
 ## On-ramps
 
 - **Bugs and requests arriving from outside** → `pp-zcode:triage`. It moves issues through triage roles and produces agent-ready briefs. Do not triage tickets that `pp-zcode:to-tickets` created; they are already agent-ready.
-- **A bug with a cheap local test path** → `pp-zcode:tdd`: write the failing regression test first, confirm it fails for the intended reason, then fix. No practical test path → `pp-zcode:poteto-mode` and its bug-fix playbook: reproduce, root-cause, fix, prove.
+- **A bug with a cheap local test path and a known cause** → `pp-zcode:tdd`: write the failing regression test first, confirm it fails for the intended reason, then fix.
+- **A hard bug** (intermittent, a performance regression, or no clean reproduction after the first attempt) → `pp-zcode:diagnosing-bugs`: build a tight red-capable loop, minimise the repro, rank falsifiable hypotheses, then fix. Hand the fix to `pp-zcode:poteto-mode` and its bug-fix playbook once the mechanism is confirmed. Without a diagnosing-bugs loop, the bug-fix playbook still applies: reproduce, root-cause, fix, prove.
 - **Small, clear work with no spec** → `pp-zcode:poteto-mode` directly. Do not manufacture a spec to satisfy the flow.
 
 ## Status
@@ -66,6 +67,7 @@ Standalone, reachable at any point:
 - `pp-zcode:recall` — rebuild recent working context across chats before resuming work.
 - `pp-zcode:reflect` — mine this session for durable learnings and route them into skill edits.
 - `pp-zcode:tdd` — the red → green loop, including the bug-fix regression loop.
+- `pp-zcode:diagnosing-bugs` — the hard-bug diagnosis loop: red-capable feedback loop, minimised repro, ranked falsifiable hypotheses, one-variable probes, regression test at a correct seam.
 - `pp-zcode:unity-development` — implementation, fixes, refactors, and testing in a Unity repository: compile, EditMode/PlayMode, scene/prefab, and manual evidence instead of assuming a conventional test suite. Pair with `pp-zcode:unity-development-setup` once per Unity project.
 
 The 24 `principle-*` micro-skills are not routes: `pp-zcode:poteto-mode` loads them by name while it works.

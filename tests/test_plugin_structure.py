@@ -35,6 +35,7 @@ POCOCK_SKILLS = [
     "to-tickets",
     "setup-matt-pocock-skills",
     "tdd",
+    "diagnosing-bugs",
     "codebase-design",
     "code-review",
     "triage",
@@ -47,7 +48,7 @@ POCOCK_USER_INVOKED = [
     "setup-matt-pocock-skills",
     "triage",
 ]
-POCOCK_MODEL_INVOCABLE = ["grilling", "domain-modeling", "tdd", "codebase-design", "code-review"]
+POCOCK_MODEL_INVOCABLE = ["grilling", "domain-modeling", "tdd", "diagnosing-bugs", "codebase-design", "code-review"]
 POCOCK_REFERENCE_FILES = {
     "domain-modeling": ["ADR-FORMAT.md", "GLOSSARY-FORMAT.md"],
     "setup-matt-pocock-skills": [
@@ -58,6 +59,7 @@ POCOCK_REFERENCE_FILES = {
         "triage-labels.md",
     ],
     "tdd": ["mocking.md", "tests.md"],
+    "diagnosing-bugs": ["scripts/hitl-loop.template.sh"],
     "codebase-design": ["DEEPENING.md", "DESIGN-IT-TWICE.md"],
     "triage": ["AGENT-BRIEF.md", "OUT-OF-SCOPE.md"],
 }
@@ -242,6 +244,25 @@ class TestBundledPocockSkills(unittest.TestCase):
             fm = frontmatter(SKILLS / name / "SKILL.md")
             self.assertNotIn("disable-model-invocation", fm,
                              f"{name} must stay model-invocable")
+
+    def test_hard_bug_wiring_is_consistent(self):
+        """diagnosing-bugs is only worth bundling if the pipeline actually
+        routes hard bugs into it. These four references are the wiring."""
+        diagnosis = (SKILLS / "diagnosing-bugs" / "SKILL.md").read_text()
+        bug_fix = (SKILLS / "poteto-mode" / "playbooks" / "bug-fix.md").read_text()
+        engine = (SKILLS / "poteto-mode" / "SKILL.md").read_text()
+        tdd = (SKILLS / "tdd" / "SKILL.md").read_text()
+        ask = (SKILLS / "ask" / "SKILL.md").read_text()
+        self.assertIn("red-capable", diagnosis,
+                      "diagnosing-bugs lost its red-capable loop criterion")
+        self.assertIn("pp-zcode:diagnosing-bugs", bug_fix,
+                      "bug-fix must load the diagnosis loop for hard bugs")
+        self.assertIn("pp-zcode:diagnosing-bugs", engine,
+                      "poteto-mode must trigger the diagnosis loop on hard bugs")
+        self.assertIn("pp-zcode:diagnosing-bugs", tdd,
+                      "tdd must defer hard-bug diagnosis to the diagnosis loop")
+        self.assertIn("pp-zcode:diagnosing-bugs", ask,
+                      "ask must route hard bugs to the diagnosis loop")
 
     def test_cross_references_use_qualified_names(self):
         """A bare skill name resolves through an alias that a user-level skill of

@@ -1,6 +1,6 @@
 # pp-zcode
 
-融合两套上游体系的 zcode 插件，两侧技能都随插件打包：**Matt Pocock 的 Skills** 负责需求工程（做什么、做到什么程度），**PStack（poteto-mode）** 负责工程执行（怎么做、如何证明做对了）。没有强制中央路由（可选的 `pp-zcode:ask` 只负责指路）：需求侧技能自由组合，工作多小、流程就多短；`implement-spec` 把 spec（及其工单）交接给 `poteto-mode` 执行引擎，执行侧的独立评审走 Pocock 的双轴 `code-review`，`pipeline-accept` 凭证据逐条验收并补扫范围蔓延。
+融合两套上游体系的 zcode 插件，两侧技能都随插件打包：**Matt Pocock 的 Skills** 负责需求工程与硬 bug 诊断（做什么、做到什么程度、为什么坏了），**PStack（poteto-mode）** 负责工程执行（怎么做、如何证明做对了）。没有强制中央路由（可选的 `pp-zcode:ask` 只负责指路）：需求侧技能自由组合，工作多小、流程就多短；`implement-spec` 把 spec（及其工单）交接给 `poteto-mode` 执行引擎，硬 bug 在 bug-fix playbook 内走 `diagnosing-bugs` 的反馈环纪律，执行侧的独立评审走 Pocock 的双轴 `code-review`，`pipeline-accept` 凭证据逐条验收并补扫范围蔓延。
 
 ```
 pp-zcode:grilling → pp-zcode:to-spec → (pp-zcode:to-tickets) │ pp-zcode:implement-spec │ pp-zcode:poteto-mode → pp-zcode:pipeline-accept
@@ -24,7 +24,7 @@ zcode 会把插件技能同时注册为 `pp-zcode:<name>` 和裸名 `<name>`。�
 | 需求探索 | 本插件 `pp-zcode:grilling` / `pp-zcode:grill-with-docs` | 需求决策记录 | 关键问题已决策 |
 | 规格设计 | 本插件 `pp-zcode:to-spec` | tracker 上的 spec（验收标准 + 测试缝） | 标准可测、缝已确认 |
 | 任务拆解 | 本插件 `pp-zcode:to-tickets` | 带阻塞边的工单 | 粒度与依赖经用户确认 |
-| 实施规划 + 编码 | 本插件 `pp-zcode:implement-spec` → `pp-zcode:poteto-mode` + 7 个 playbook | 代码变更 + 工单证据 | 计划与 spec 一致、spec 只读 |
+| 实施规划 + 编码 | 本插件 `pp-zcode:implement-spec` → `pp-zcode:poteto-mode` + 9 个 playbook | 代码变更 + 工单证据 | 计划与 spec 一致、spec 只读 |
 | 质量审查 + 验证 | 本插件 `pp-zcode:code-review`（评审员 glm-reviewer）+ glm-tester 验证 | 审查与验证证据 | 真实命令输出才算 verified |
 | 最终验收 | 本插件 `pp-zcode:pipeline-accept` | 逐项验收报告 | 每条标准 pass / fail / unverified，外加 code → spec 补扫 |
 
@@ -52,6 +52,8 @@ plugins/pp-zcode/
     ├── setup-matt-pocock-skills/     首次使用前配置 tracker、triage 标签、领域文档
     ├── triage/                       问题与外PR 的分诊状态机，产出 agent brief
     ├── tdd/                          red-green-refactor 参考 + bug 修复回归循环
+    ├── diagnosing-bugs/              Pocock 硬 bug 诊断环：先建红色反馈环，再最小化复现与排序假设
+    │   └── scripts/                  hitl-loop.template.sh（人在环复现脚本模板）
     ├── codebase-design/              深模块设计的共享词汇
     ├── code-review/                  Pocock 双轴 diff 评审：repo 规范 + smell 基线；spec 保真（含范围蔓延）
     ├── implement-spec/               ★ 桥接：从 tracker 取 spec/工单，构建交接简报，交给引擎
@@ -91,7 +93,7 @@ plugins/pp-zcode/
 
 移植方式沿用 pstack 官方的适配层做法：上游技能**原样保留**，所有 Cursor 专有名称（Task、模型 slug、cloud agent、Bugbot 等）集中在 `poteto-mode` 的 Harness adapter 一张表里映射到 zcode 的对应物（`Agent`、宿主的 glm-coder / glm-reviewer / glm-tester 等专项 agent、`gh`、browser-use 技能）。未随插件携带的上游技能（`figure-it-out`、babysit、orchestrate 等）在 Substitutions 表里给了明确的替代行为，不靠猜。常规评审由 Pocock 的 `code-review` 承担（评审员是 glm-reviewer），`interrogate` 是争议时的多模型对抗升级。
 
-Pocock 技能按上游原文打包，机械改动只有一处：技能之间的调用与指引改成 `pp-zcode:<name>` 限定名。两个例外：`code-review` 的子代理机制映射到宿主 `Agent` 工具、issue 查询指向 tracker 工作流，并接线进执行与验收两侧；`tdd` 做了内容融合——保留 Pocock 的测试方法论，并入 pstack 的 bug 修复循环、跳过规则与证据报告。
+Pocock 技能按上游原文打包，机械改动只有一处：技能之间的调用与指引改成 `pp-zcode:<name>` 限定名。三个例外：`code-review` 的子代理机制映射到宿主 `Agent` 工具、issue 查询指向 tracker 工作流，并接线进执行与验收两侧；`tdd` 做了内容融合——保留 Pocock 的测试方法论，并入 pstack 的 bug 修复循环、跳过规则与证据报告；`diagnosing-bugs` 原文保留，按引用接入流程——`bug-fix` playbook 对硬 bug 加载它，`tdd` 把回归测试交给它的 Phase 5 缝规则，`ask` 把硬 bug 路由到它。
 
 ## 模型角色
 
@@ -138,6 +140,7 @@ Matt Pocock 的技能（需求侧 + `code-review`）已随插件打包，**不�
 /pp-zcode:to-tickets                           # 大活才需要：把 spec 拆成带阻塞边的纵切工单
 /pp-zcode:implement-spec                       # 取 spec（和工单）→ 交接简报 → poteto-mode 执行
 /pp-zcode:poteto-mode 修复登录超时              # 小活直接进引擎，按任务形状选 playbook
+/pp-zcode:diagnosing-bugs 偶发的支付回调丢失      # 硬 bug：先建反馈环，再最小化复现与排序假设
 /pp-zcode:pipeline-accept                      # spec 背书的活执行完后逐条验收
 /pp-zcode:pipeline-status 购物车                # 只读查询：进度在哪、下一步归谁
 /pp-zcode:code-review main                     # 常规评审：自 main 以来的 diff，规范轴 + spec 轴并行
@@ -158,6 +161,7 @@ Matt Pocock 的技能（需求侧 + `code-review`）已随插件打包，**不�
 | spec 太大，要拆成可独立验证的工单 | `/pp-zcode:to-tickets` | 纵切工单 + 阻塞边，粒度经你确认 |
 | spec（和工单）就绪，开始实现 | `/pp-zcode:implement-spec` | 从 tracker 取件 → 构建交接简报 → `poteto-mode` 按工单或按 spec 整体执行，证据纪律全程生效 |
 | 小活直接改代码，不值得出 spec | `/pp-zcode:poteto-mode` | 执行引擎按任务形状自动选 playbook（见下表） |
+| 硬 bug：间歇复现、性能回归、一遍查不出原因 | `/pp-zcode:diagnosing-bugs` | 先建可红可绿的紧反馈环并最小化复现，再列 3–5 个可证伪假设逐个排除，最后在正确缝上加回归测试 |
 | 一段改动写完了，要评审（branch、PR、自某点以来的 diff） | `/pp-zcode:code-review <固定点>` | 双轴并行：repo 规范 + Fowler smell 基线；spec 轴对照工单/spec 查缺失、做错与范围蔓延 |
 | 工单全部 verified，要最终验收 | `/pp-zcode:pipeline-accept` | 逐条验收标准对证据，输出 pass / fail / unverified 报告，附 code → spec 补扫 |
 | 只想看进度，不动任何东西 | `/pp-zcode:pipeline-status <feature>` | 只读报告：阶段判定、工单表、下一个能动的工单、下一步归谁 |
@@ -171,7 +175,7 @@ Matt Pocock 的技能（需求侧 + `code-review`）已随插件打包，**不�
 | 任务形状 | playbook |
 | --- | --- |
 | 只读问题："X 怎么工作""该做 X 还是 Y" | investigation |
-| 报来的缺陷 | bug-fix（先复现，再根因） |
+| 报来的缺陷 | bug-fix（先复现，再根因；硬 bug 在内部加载 `pp-zcode:diagnosing-bugs`） |
 | 新功能或行为变更 | feature |
 | 重命名、提取、去重等行为不变的结构调整 | refactoring |
 | 设计或实证分歧，用一次性草图定夺 | prototype |
@@ -196,6 +200,7 @@ Matt Pocock 的技能（需求侧 + `code-review`）已随插件打包，**不�
 | 配置执行侧各席位的模型与推理档位 | `/pp-zcode:setup-models` |
 | 把一段东西真正讲明白（how + why 合成） | `/pp-zcode:teach` |
 | 小改动怕炸到别处，先查影响面 | `/pp-zcode:blast-radius` |
+| 硬 bug 查不出根因：间歇、性能回归、无稳定复现 | `/pp-zcode:diagnosing-bugs` |
 | 长任务 / 无人值守工作留可审计决策日志 | `/pp-zcode:show-me-your-work` |
 | 同一类 agent 错误反复出现，想从结构上堵掉 | `/pp-zcode:correct` |
 | 写或改 `.ts` / `.tsx`，先对齐类型纪律 | `/pp-zcode:typescript-best-practices` |
@@ -218,6 +223,7 @@ Matt Pocock 的技能（需求侧 + `code-review`）已随插件打包，**不�
 | 验收补扫发现范围蔓延 | 回 poteto-mode 删除或说明保留理由；确属需求的先回 spec 阶段，增量重新出票 |
 | 执行中发现 spec 本身有错（标准不可满足、漏了 case） | 停止执行，点名问题退回 spec 阶段，只对增量重新出票 |
 | 交付后用户报缺陷 | spec 没错 → 重开工单回执行；需求错了 → 改 spec，增量重新出票 |
+| 修了两轮症状仍在，或根本无法稳定复现 | 停止试错，转入 `pp-zcode:diagnosing-bugs`：先建红色反馈环与最小复现，再谈假设 |
 | 环境跑不了的验证 | 记 `unverified: <需要什么人工步骤或设备>`，绝不算完成 |
 
 `principle-*`（24 个）不是调用入口：poteto-mode 在执行中按需点名加载这些原则微技能（最小改动、根因修复、先证明再宣称完成……），随执行自动生效。
@@ -226,7 +232,8 @@ Matt Pocock 的技能（需求侧 + `code-review`）已随插件打包，**不�
 
 ## 实施路线
 
-- **v0.9（当前）**：收编 Pocock 上游 `code-review` 为 `pp-zcode:code-review`（双轴：repo 规范 + Fowler smell 基线、spec 保真）。`poteto-mode` 的独立评审改走该协议，`pipeline-accept` 验收门新增 code → spec 补扫抓范围蔓延，`ask` 增加路由。
+- **v0.10（当前）**：收编 Pocock 上游 `diagnosing-bugs` 为 `pp-zcode:diagnosing-bugs`（红色反馈环、最小复现、可证伪假设、单变量探针、正确缝回归测试）。`poteto-mode` 的 bug-fix playbook 对硬 bug 加载该技能，`tdd` 把回归测试交给它的 Phase 5 缝规则，`ask` 与 README 路由同步更新。
+- **v0.9**：收编 Pocock 上游 `code-review` 为 `pp-zcode:code-review`（双轴：repo 规范 + Fowler smell 基线、spec 保真）。`poteto-mode` 的独立评审改走该协议，`pipeline-accept` 验收门新增 code → spec 补扫抓范围蔓延，`ask` 增加路由。
 - **v0.8**：对齐 pstack-zcode v0.15.28。修正 `why`、`bug-fix`、`shipping`、`opening-a-pr` 里会在 zcode 下失效的 Cursor 机制；`no-comments` 改走插件自带 `comment-sicko` agent（缺失时回落 `general-purpose`）。新增上游技能 `show-me-your-work`、`blast-radius`、`correct`、`teach`、`typescript-best-practices`、`reflect`、`recall`、`create-verification-skill`、`maintain-verification-skill`、`create-formal-verification-skill`、`maintain-formal-verification-skill`，以及 `session-pickup` / `pause-safely` 两个 playbook；`setup-models` 增加 reflect 角色行。
 - **v0.7**：移植 pstack-zcode 的模型角色机制：新增 `pp-zcode:setup-models`（角色表 + 预算档位 + 预设 agent + workflow 刷新）与 `pp-zcode:interrogate`（多模型对抗评审）；执行侧技能改为读取 `~/.zcode/pp-zcode/models.md`，不再引用 Cursor 规则或写死模型 slug。
 - **v0.6**：新增 `pp-zcode:ask` 技能路由器：按处境把工作导向插件内合适的技能与流程，不引入强制链条。

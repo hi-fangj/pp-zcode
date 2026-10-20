@@ -64,7 +64,7 @@ the todo list, and every spawn. You own only the scope below.
 | Upstream's `tdd` skill | Use the bundled `pp-zcode:tdd`: failing test at the spec's seam, then the change, then the full check. |
 | `interrogate` (contested design) | Use the bundled `pp-zcode:interrogate`: one reviewer per configured model, synthesized into one verdict. Still contested after synthesis → put the fork to the user. |
 | `figure-it-out` (bespoke playbook for large work) | Hand the work back: large or cross-cutting work gets split into tickets with `pp-zcode:to-tickets` and handed over through `pp-zcode:implement-spec`, not improvised here. |
-| `perf-issue` playbook | Not bundled. Run the Bug fix playbook with a captured baseline, and vet every number through `pp-zcode:benchmark-checklist`. |
+| `perf-issue` playbook | Not bundled. Run the Bug fix playbook inside `pp-zcode:diagnosing-bugs`, whose perf branch establishes a baseline before bisecting, and vet every number through `pp-zcode:benchmark-checklist`. |
 | `hillclimb` playbook | Not bundled. Loop one hypothesis at a time against a frozen harness, keeping the `pp-zcode:benchmark-checklist` rules, and log each attempt with `pp-zcode:show-me-your-work`. |
 | `show-me-your-work` (decision trail) | Use the bundled `pp-zcode:show-me-your-work`: one TSV, one row per decision. Ticket files and the `pp-zcode:pipeline-accept` report still hold the spec-level record. |
 | `babysit` playbook and `scripts/watch-pr` | Use `gh pr checks --watch <pr>` and `gh pr view` in a loop. |
@@ -91,6 +91,7 @@ Remaining triggers:
 - Docs, RFCs, readmes, PR descriptions, or commit messages → `pp-zcode:technical-writing`.
 - Before review → `pp-zcode:no-comments`.
 - Shipping UI / IDE / CLI → the matching control skill per the Substitutions table. For bug fixes, reproduce first on the same surface yourself.
+- A hard bug → `pp-zcode:diagnosing-bugs` before any fix hypothesis. Hard means no clean reproduction after the first attempt, intermittent or flaky, a performance regression, or two fixes that failed against the same symptom. It owns the feedback loop, minimisation, and ranked hypotheses; the Bug fix playbook owns the run around it.
 - Running a benchmark, measuring perf yourself, or reporting a speedup or regression you measured → `pp-zcode:benchmark-checklist` before you report or act on the number.
 - Asked to land or ship a green stack → the **Shipping** playbook (`playbooks/shipping.md`). Green is not safe. Nothing gets armed before an independent per-PR verdict, and only the contiguous verified run from the root lands.
 - Broken skill mid-task → fix it in its own PR. Don't block. Don't silently work around it.
@@ -182,7 +183,7 @@ Comments follow the same rule as the reply. Write them clean as you go. Keep a c
 Open a todolist whose first items are the matched playbook's steps, copied in verbatim, before any task-specific todos. A step you choose not to do stays in the list with a one-line `skip: <reason>`. Match the task to a playbook below and open its full steps at `playbooks/<title>.md`.
 
 - **Investigation.** Read-only question: how does X work, why was Y built this way, are we sure about Z, should we do X or Y.
-- **Bug fix.** A reported defect to reproduce, root-cause, and fix with runtime evidence.
+- **Bug fix.** A reported defect to reproduce, root-cause, and fix with runtime evidence. Hard bugs run inside `pp-zcode:diagnosing-bugs`, which builds the red-capable loop and ranked hypotheses before a fix is attempted.
 - **Feature.** New or changed behavior, built from a named data shape.
 - **Refactoring.** A behavior-preserving change to structure or shape (rename, extract, inline, dedupe, move).
 - **Prototype.** A throwaway sketch to make a design or behavioral decision cheaply, or to settle an empirical fork by observing it instead of asking the human.
